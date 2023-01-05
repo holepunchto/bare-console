@@ -1,14 +1,16 @@
-# lib-template
+# tiny-console
 
 Simple description here
 
 ```
-npm i lib-template
+npm i tiny-console
 ```
 
 ## Usage
 ```javascript
-const lib = require('lib-template')
+const console = require('tiny-console')
+
+console.log('Hello')
 ```
 
 ## License
