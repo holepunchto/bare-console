@@ -33,12 +33,13 @@ class Console {
   }
 
   trace (...messages) {
-    let { stack } = new Error(messages.join(' '))
-    // + use indexOf instead of split?
-    const lines = stack.split('\n')
-    lines.splice(1, 1)
-    stack = lines.join('\n')
-    this.error(stack.replace('Error:', 'Trace:'))
+    const { stack } = new Error()
+
+    const first = stack.indexOf('\n')
+    const second = stack.indexOf('\n', first + 1)
+    const start = second > -1 ? second : 0
+
+    this.error('Trace: ' + messages.join(' ') + stack.slice(start))
   }
 
   _print (stream, ...args) {
