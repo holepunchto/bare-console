@@ -1,0 +1,22 @@
+{
+  "name": "tiny-console",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/holepunchto/tiny-console.git"
+  },
+  "author": "Lucas Barrena (LuKks)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/holepunchto/tiny-console/issues"
+  },
+  "homepage": "https://github.com/holepunchto/tiny-console",
+  "devDependencies": {
+    "brittle": "^3.1.1"
+  },
+  "dependencies": {
+    "tiny-crayon": "^1.0.3"
+  }
+}
