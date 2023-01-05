@@ -1,8 +1,10 @@
 const console2 = require('./index.js')
 
+console.trace()
 console.trace('Show me')
 console.trace('Show me', 'aa', 'bb')
 
+console2.trace()
 console2.trace('Show me')
 console2.trace('Show me', 'aa', 'bb')
 
