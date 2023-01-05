@@ -5,6 +5,31 @@ class Console {
   constructor (opts = {}) {
     this.log = this._print.bind(this, opts.stdout || process._stdout || process.stdout)
     this.error = this._print.bind(this, opts.stderr || process._stderr || process.stderr)
+
+    this.timers = new Map()
+  }
+
+  /*
+  0.052ms
+  489.275ms
+  4.596s
+  */
+
+  time (label = 'default') {
+    // + should not throw
+    if (this.timers.has(label)) throw new Error('Label \'' + label + '\' already exists for console.time()')
+    this.timers.set(label, Date.now()) // + nano
+  }
+
+  timeEnd (label = 'default') {
+    // + should not throw
+    if (!this.timers.has(label)) throw new Error('No such label \'' + label + '\' for console.timeEnd()')
+
+    const t = this.timers.get(label)
+    this.timers.delete(label)
+
+    const formatted = Date.now() - t
+    this.log(label + ': ' + formatted + 'ms')
   }
 
   _print (stream, ...args) {

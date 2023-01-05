@@ -1,5 +1,18 @@
 const console2 = require('./index.js')
 
+console2.time()
+console2.timeEnd() // default: 0.052ms
+
+console2.time()
+for (let i = 0; i < 1000000000; i++) {}
+console2.timeEnd() // default: 489.275ms
+
+console2.time()
+for (let i = 0; i < 3000000000; i++) {}
+console2.timeEnd() // default: 4.596s
+
+return
+
 const fn = () => {}
 const obj = { b: true, fn: function () {}, c: { d: 'hi' }, e: [1, { f: 2 }] }
 const obj2 = { a: { b: { c: { d: { e: { f: { g: {} } } } } } } }
