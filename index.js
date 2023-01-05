@@ -32,6 +32,14 @@ class Console {
     this.log(label + ': ' + formatted + 'ms')
   }
 
+  trace (...messages) {
+    let { stack } = new Error(messages.join(' '))
+    const lines = stack.split('\n')
+    lines.splice(1, 1)
+    stack = lines.join('\n')
+    this.error(stack.replace('Error:', 'Trace:'))
+  }
+
   _print (stream, ...args) {
     if (typeof stream === 'function') stream = { write: stream } // +
 
