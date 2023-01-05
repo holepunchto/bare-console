@@ -34,6 +34,7 @@ class Console {
 
   trace (...messages) {
     let { stack } = new Error(messages.join(' '))
+    // + use indexOf instead of split?
     const lines = stack.split('\n')
     lines.splice(1, 1)
     stack = lines.join('\n')
