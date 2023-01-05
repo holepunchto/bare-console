@@ -1,4 +1,5 @@
-const crayon = require('tiny-crayon')
+const { Crayon } = require('tiny-crayon')
+const crayon = new Crayon({ isTTY: true })
 
 class Console {
   constructor (opts = {}) {
