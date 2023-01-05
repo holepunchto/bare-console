@@ -1,6 +1,6 @@
 const crayon = require('tiny-crayon')
 
-module.exports = class Console {
+class Console {
   constructor (opts = {}) {
     this.log = this._print.bind(this, opts.stdout || process._stdout || process.stdout)
     this.error = this._print.bind(this, opts.stderr || process._stderr || process.stderr)
@@ -106,6 +106,8 @@ function isObjectEmpty (obj) {
   for (let k in obj) return false
   return true
 }
+
+module.exports = new Console()
 
 /*
 Object [console] {

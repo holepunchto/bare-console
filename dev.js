@@ -1,6 +1,4 @@
-const Console = require('./index.js')
-
-const c = new Console()
+const console2 = require('./index.js')
 
 const fn = () => {}
 const obj = { b: true, fn: function () {}, c: { d: 'hi' }, e: [1, { f: 2 }] }
@@ -56,26 +54,26 @@ console.log('[console]')
 console.log()
 
 console.log('[tiny-console]')
-c.log(undefined)
-c.log(null)
-c.log(NaN)
-c.log('hello')
-c.log(123)
-c.log(true)
-c.log('a', 'b', 'c')
-c.log(function () {}) // + [Function (anonymous)]
-c.log(function funcname () {}) // + [Function: funcname]
-c.log(() => {}) // + [Function (anonymous)]
-c.log(fn) // + [Function: fn]
-// c.log(new Map)
-c.log([])
-c.log([undefined, null, NaN, 'hello', 123, true])
-c.log(["how'dy", 'how\'d"y', 'how\'d"y\`'])
-c.log(new Array(16).fill('a'))
-c.log({})
-c.log(obj)
-c.log(obj2)
-c.log(obj3)
-c.log(obj4)
-c.log(obj5)
+console2.log(undefined)
+console2.log(null)
+console2.log(NaN)
+console2.log('hello')
+console2.log(123)
+console2.log(true)
+console2.log('a', 'b', 'c')
+console2.log(function () {}) // + [Function (anonymous)]
+console2.log(function funcname () {}) // + [Function: funcname]
+console2.log(() => {}) // + [Function (anonymous)]
+console2.log(fn) // + [Function: fn]
+// console2.log(new Map)
+console2.log([])
+console2.log([undefined, null, NaN, 'hello', 123, true])
+console2.log(["how'dy", 'how\'d"y', 'how\'d"y\`'])
+console2.log(new Array(16).fill('a'))
+console2.log({})
+console2.log(obj)
+console2.log(obj2)
+console2.log(obj3)
+console2.log(obj4)
+console2.log(obj5)
 console.log('[tiny-console]')
