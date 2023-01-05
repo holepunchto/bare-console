@@ -7,6 +7,8 @@ module.exports = class Console {
   }
 
   _print (stream, ...args) {
+    if (typeof stream === 'function') stream = { write: stream } // +
+
     /* if (args.length === 0) {
       stream.write('\n')
       return
