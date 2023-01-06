@@ -1,6 +1,6 @@
 # tiny-console
 
-Simple description here
+Simple debugging console.
 
 ```
 npm i tiny-console
