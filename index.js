@@ -79,15 +79,7 @@ class Console {
 
           let first = true
 
-          // const keys = Object.keys(arg)
-          // const values = Object.values(arg)
-          // console.log('keys:', keys)
-
-          const symbols = Object.getOwnPropertySymbols(arg)
-          // console.log('symbols:', symbols)
-
           for (const key in arg) {
-            // console.log('key in', typeof key, {key})
             const k = isArray ? parseInt(key, 10) : key
 
             if (first) stream.write(isDeep ? '\n' + spacingStart : ' ')
@@ -108,14 +100,14 @@ class Console {
             }
           }
 
-          for (const symbol of symbols) {
-            // console.log('symbol of', symbol)
+          const symbols = Object.getOwnPropertySymbols(arg)
 
+          for (const symbol of symbols) {
             if (first) stream.write(isDeep ? '\n' + spacingStart : ' ')
             else stream.write(isDeep ? ',\n' + spacingStart : ', ')
             first = false
 
-            const name = isArray ? '' : (generateSingleKey(symbol) + ': ')
+            const name = isArray ? '' : ('[' + symbol.toString() + ']: ')
             stream.write(name)
 
             const single = generateSingleValue(arg[symbol])
@@ -139,10 +131,6 @@ class Console {
 
     function generateSingleKey (key) {
       if (key === '') return crayon.green("''")
-
-      if (typeof key === 'symbol') {
-        return '[' + key.toString() + ']'
-      }
 
       const names = ['undefined', 'null', 'true', 'false', 'NaN', 'Infinity']
       if (names.indexOf(key) > -1) return key
