@@ -164,13 +164,35 @@ class Console {
       if (value instanceof WeakMap) return 'WeakMap { <items unknown> }'
       if (value instanceof WeakSet) return 'WeakSet { <items unknown> }'
 
-      if (value instanceof Int8Array) return 'Int8Array(' + value.length + ') [' + (value.length ? ' ... ' : '') + ']'
-      if (value instanceof Int16Array) return 'Int16Array(' + value.length + ') [' + (value.length ? ' ... ' : '') + ']'
-      if (value instanceof Int32Array) return 'Int32Array(' + value.length + ') [' + (value.length ? ' ... ' : '') + ']'
+      if (value instanceof Int8Array) return 'Int8Array(' + value.length + ') ' + outputArray(value)
+      if (value instanceof Int16Array) return 'Int16Array(' + value.length + ') ' + outputArray(value)
+      if (value instanceof Int32Array) return 'Int32Array(' + value.length + ') ' + outputArray(value)
 
       return null
     }
   }
+}
+
+function outputArray (arr) {
+  if (arr.length === 0) return '[]'
+
+  const max = arr.length > 64 ? 64 : arr.length // + Node is 100 + dynamic spacing depending on 16, 32, etc
+  let output = '[ '
+
+  for (let i = 0; i < max; i++) {
+    output += arr[i] + ', '
+  }
+
+  if (arr.length <= 64) {
+    output = output.slice(0, output.length - 2) // remove comma
+  } else {
+    const left = arr.length - 64
+    output += '... ' + left + ' more item' + (left >= 2 ? 's' : '')
+  }
+
+  output += ' ]'
+
+  return output
 }
 
 function adaptStream (stream) {
