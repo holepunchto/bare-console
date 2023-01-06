@@ -177,20 +177,29 @@ function outputArray (arr) {
   if (arr.length === 0) return '[]'
 
   const max = arr.length > 64 ? 64 : arr.length // + Node is 100 + dynamic spacing depending on 16, 32, etc
-  let output = '[ '
+  const addSpaces = arr.length > 16
+
+  let first = true
+  let output = '['
 
   for (let i = 0; i < max; i++) {
-    output += arr[i] + ', '
+    if (first) output += addSpaces ? '\n  ' : ' '
+    else output += addSpaces ? ',' + (i % 16 === 0 ? '\n  ' : ' ') : ', '
+    first = false
+
+    output += arr[i]
   }
 
-  if (arr.length <= 64) {
-    output = output.slice(0, output.length - 2) // remove comma
-  } else {
+  if (arr.length > 64) {
     const left = arr.length - 64
+
+    output += addSpaces ? ',\n  ' : ', '
     output += '... ' + left + ' more item' + (left >= 2 ? 's' : '')
   }
 
-  output += ' ]'
+  if (!first) output += addSpaces ? '\n' : ' '
+
+  output += ']'
 
   return output
 }
