@@ -4,7 +4,7 @@ const path = require('path')
 const fs = require('fs')
 const os = require('os')
 
-test('basic logs', async function (t) {
+test('basic log', async function (t) {
   const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
   both(nodeConsole)
@@ -37,6 +37,21 @@ test('basic logs', async function (t) {
     logger.log([])
     logger.log({})
     logger.log([], {})
+  }
+
+  await closeAndCompare()
+})
+
+test('log Error', async function (t) {
+  const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+  both(nodeConsole)
+  both(tinyConsole)
+
+  function both (logger) {
+    logger.error(new Error('Something happened'))
+
+    logger.error({ error: new Error('Something happened') })
   }
 
   await closeAndCompare()

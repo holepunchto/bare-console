@@ -60,6 +60,7 @@ class Console {
       else if (typeof arg === 'number') stream.write(this.crayon.yellow(arg))
       else if (typeof arg === 'boolean') stream.write(this.crayon.yellow(arg))
       else if (typeof arg === 'function') stream.write(this.crayon.cyan(arg.name ? '[Function: ' + arg.name + ']' : '[Function (anonymous)]'))
+      else if (arg instanceof Error) stream.write(arg.stack)
       else if (typeof arg === 'object') {
         // + maybe consider buffering output and write all at once, or just cork/uncork?
 
@@ -100,6 +101,7 @@ class Console {
             else if (typeof arg[k] === 'number') stream.write(crayon.yellow(arg[k]))
             else if (typeof arg[k] === 'boolean') stream.write(crayon.yellow(arg[k]))
             else if (typeof arg[k] === 'function') stream.write(crayon.cyan(arg[k].name ? '[Function: ' + arg[k].name + ']' : '[Function (anonymous)]'))
+            else if (arg[k] instanceof Error) stream.write(arg[k].stack)
             else if (typeof arg[k] === 'object') iterateObject(arg[k])
             else {
               stream.write('*not-supported-yet:' + (typeof arg[k]) + '-' + arg[k] + '*')
