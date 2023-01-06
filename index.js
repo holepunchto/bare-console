@@ -11,21 +11,20 @@ class Console {
     this.times = new Map()
   }
 
-  /*
-  0.052ms
-  489.275ms
-  4.596s
-  */
-
   time (label = 'default') {
-    // + should not throw
-    if (this.times.has(label)) throw new Error('Label \'' + label + '\' already exists for console.time()')
+    if (this.times.has(label)) {
+      this.error('Warning: Label \'' + label + '\' already exists for console.time()')
+      return
+    }
+
     this.times.set(label, process.hrtime())
   }
 
   timeEnd (label = 'default') {
-    // + should not throw
-    if (!this.times.has(label)) throw new Error('No such label \'' + label + '\' for console.timeEnd()')
+    if (!this.times.has(label)) {
+      this.error('Warning: No such label \'' + label + '\' for console.timeEnd()')
+      return
+    }
 
     const started = this.times.get(label)
     const d = process.hrtime(started)
