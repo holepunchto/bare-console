@@ -8,7 +8,7 @@ class Console {
     this.log = this._print.bind(this, adaptStream(opts.stdout || process._stdout || process.stdout))
     this.error = this._print.bind(this, adaptStream(opts.stderr || process._stderr || process.stderr))
 
-    this.timers = new Map()
+    this.times = new Map()
   }
 
   /*
@@ -19,19 +19,21 @@ class Console {
 
   time (label = 'default') {
     // + should not throw
-    if (this.timers.has(label)) throw new Error('Label \'' + label + '\' already exists for console.time()')
-    this.timers.set(label, Date.now()) // + nano
+    if (this.times.has(label)) throw new Error('Label \'' + label + '\' already exists for console.time()')
+    this.times.set(label, process.hrtime())
   }
 
   timeEnd (label = 'default') {
     // + should not throw
-    if (!this.timers.has(label)) throw new Error('No such label \'' + label + '\' for console.timeEnd()')
+    if (!this.times.has(label)) throw new Error('No such label \'' + label + '\' for console.timeEnd()')
 
-    const t = this.timers.get(label)
-    this.timers.delete(label)
+    const started = this.times.get(label)
+    const d = process.hrtime(started)
+    this.times.delete(label)
 
-    const formatted = Date.now() - t
-    this.log(label + ': ' + formatted + 'ms')
+    const ms = d[0] * 1e3 + d[1] / 1e6
+    if (ms > 1000) this.log(label + ': ' + (ms / 1000).toFixed(3) + 's')
+    else this.log(label + ': ' + ms.toFixed(3) + 'ms')
   }
 
   trace (...messages) {

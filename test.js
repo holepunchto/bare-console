@@ -137,6 +137,53 @@ test.skip('trace with multiple args', async function (t) {
   await closeAndCompare()
 })
 
+test.skip('basic times', async function (t) {
+  const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+  both(nodeConsole)
+  both(tinyConsole)
+
+  function both (logger) {
+    logger.time()
+    logger.timeEnd()
+  }
+
+  await closeAndCompare()
+})
+
+test.skip('times with custom label', async function (t) {
+  const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+  both(nodeConsole)
+  both(tinyConsole)
+
+  function both (logger) {
+    logger.time('custom')
+    logger.timeEnd('custom')
+  }
+
+  await closeAndCompare()
+})
+
+test.skip('times with different format', async function (t) {
+  const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+  both(nodeConsole)
+  both(tinyConsole)
+
+  function both (logger) {
+    logger.time('millis')
+    logger.timeEnd('millis')
+
+    logger.time('seconds')
+    const stop = Date.now() + 1500
+    while (Date.now() < stop) {} // eslint-disable-line no-empty
+    logger.timeEnd('seconds')
+  }
+
+  await closeAndCompare()
+})
+
 /*
 console2.time()
 console2.timeEnd() // default: 0.052ms
