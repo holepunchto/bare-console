@@ -47,36 +47,29 @@ class Console {
   }
 
   _print (stream, ...args) {
-    /* if (args.length === 0) {
-      stream.write('\n')
-      return
-    } */
+    // + buffer output?
+    const { crayon } = this
 
     for (let i = 0; i < args.length; i++) {
       const arg = args[i]
-      // console.log('args', i, arg)
 
-      if (typeof arg === 'undefined') stream.write(this.crayon.blackBright('undefined'))
-      else if (arg === null) stream.write(this.crayon.whiteBright(this.crayon.bold('null')))
-      else if (typeof arg === 'string') stream.write(arg)
-      else if (typeof arg === 'number') stream.write(this.crayon.yellow(arg))
-      else if (typeof arg === 'boolean') stream.write(this.crayon.yellow(arg))
-      else if (typeof arg === 'function') stream.write(this.crayon.cyan(arg.name ? '[Function: ' + arg.name + ']' : '[Function (anonymous)]'))
-      else if (arg instanceof Error) stream.write(arg.stack)
-      else if (typeof arg === 'object') {
-        // + maybe consider buffering output and write all at once, or just cork/uncork?
-
-        // const depth = getObjectDepth(arg)
+      const single = generateSingleValue(arg)
+      if (single !== null) {
+        stream.write(single)
+      } else if (typeof arg === 'object') {
+        const depth = getObjectDepth(arg)
+        const isDeep = depth >= 999 // + 3 // spacing temporarily disabled
         let levels = 0
 
-        const { crayon } = this
         iterateObject(arg)
 
         function iterateObject (arg) {
+          const spacingStart = isDeep ? '  '.repeat(levels + 1) : ''
+          const spacingEnd = isDeep ? '  '.repeat(levels) : ''
           const isArray = Array.isArray(arg)
 
           if (++levels >= 4 && !isObjectEmpty(arg)) {
-            let type = Array.isArray(arg) ? 'Array' : (typeof arg)
+            let type = isArray ? 'Array' : (typeof arg)
             type = type[0].toUpperCase() + type.slice(1)
             stream.write(crayon.cyan('[' + type + ']'))
             return
@@ -86,31 +79,50 @@ class Console {
 
           let first = true
 
-          for (let k in arg) {
-            if (first) stream.write(' ')
-            else stream.write(', ')
+          // const keys = Object.keys(arg)
+          // const values = Object.values(arg)
+          // console.log('keys:', keys)
+
+          const symbols = Object.getOwnPropertySymbols(arg)
+          // console.log('symbols:', symbols)
+
+          for (const key in arg) {
+            // console.log('key in', typeof key, {key})
+            const k = isArray ? parseInt(key, 10) : key
+
+            if (first) stream.write(isDeep ? '\n' + spacingStart : ' ')
+            else stream.write(isDeep ? ',\n' + spacingStart : ', ')
             first = false
 
-            if (isArray) k = parseInt(k, 10)
-
-            const name = isFinite(k) ? '' : (k + ': ')
+            const isNumeric = isFinite(k)
+            const name = isArray && isNumeric ? '' : (generateSingleKey(key) + ': ')
             stream.write(name)
 
-            // + obvs should reuse types somehow! so just basic support for now
-            if (typeof arg[k] === 'undefined') stream.write(crayon.blackBright('undefined'))
-            else if (arg[k] === null) stream.write(crayon.whiteBright(crayon.bold('null')))
-            else if (typeof arg[k] === 'string') stream.write(crayon.green("'" + arg[k] + "'"))
-            else if (typeof arg[k] === 'number') stream.write(crayon.yellow(arg[k]))
-            else if (typeof arg[k] === 'boolean') stream.write(crayon.yellow(arg[k]))
-            else if (typeof arg[k] === 'function') stream.write(crayon.cyan(arg[k].name ? '[Function: ' + arg[k].name + ']' : '[Function (anonymous)]'))
-            else if (arg[k] instanceof Error) stream.write(arg[k].stack)
-            else if (typeof arg[k] === 'object') iterateObject(arg[k])
-            else {
+            const single = generateSingleValue(arg[k], { stringColor: true })
+            if (single !== null) {
+              stream.write(single)
+            } else if (typeof arg[k] === 'object') {
+              iterateObject(arg[k])
+            } else {
               stream.write('*not-supported-yet:' + (typeof arg[k]) + '-' + arg[k] + '*')
             }
           }
 
-          if (!first) stream.write(' ')
+          for (const symbol of symbols) {
+            // console.log('symbol of', symbol)
+
+            if (first) stream.write(isDeep ? '\n' + spacingStart : ' ')
+            else stream.write(isDeep ? ',\n' + spacingStart : ', ')
+            first = false
+
+            const name = isArray ? '' : (generateSingleKey(symbol) + ': ')
+            stream.write(name)
+
+            const single = generateSingleValue(arg[symbol])
+            stream.write(single)
+          }
+
+          if (!first) stream.write(isDeep ? '\n' + spacingEnd : ' ')
 
           stream.write(isArray ? ']' : '}')
 
@@ -124,6 +136,50 @@ class Console {
     }
 
     stream.write('\n')
+
+    function generateSingleKey (key) {
+      if (key === '') return crayon.green("''")
+
+      if (typeof key === 'symbol') {
+        return '[' + key.toString() + ']'
+      }
+
+      const names = ['undefined', 'null', 'true', 'false', 'NaN', 'Infinity']
+      if (names.indexOf(key) > -1) return key
+
+      if (isAlphaNumeric(key) && !isFinite(key)) return key
+
+      return crayon.green("'" + key + "'")
+    }
+
+    function generateSingleValue (value, { stringColor = false } = {}) {
+      if (typeof value === 'undefined') return crayon.blackBright('undefined')
+      if (value === null) return crayon.whiteBright(crayon.bold('null'))
+
+      if (typeof value === 'string') return stringColor ? crayon.green("'" + value + "'") : value // + dynamic quotes?
+      if (typeof value === 'number') return crayon.yellow(value)
+      if (typeof value === 'boolean') return crayon.yellow(value)
+      if (typeof value === 'function') return crayon.cyan(value.name ? '[Function: ' + value.name + ']' : '[Function (anonymous)]')
+      if (typeof value === 'symbol') return crayon.green(value.toString())
+
+      if (value instanceof Error) return value.stack
+      if (value instanceof String) return "[String: '" + value.toString() + "']" // + dynamic quotes
+      if (value instanceof Number) return '[Number: ' + value.toString() + ']'
+      if (value instanceof Boolean) return '[Boolean: ' + value.toString() + ']'
+      if (value instanceof Date) return value.toISOString()
+
+      if (value instanceof Map) return 'Map(' + value.size + ') {' + (value.size ? ' ... ' : '') + '}'
+      if (value instanceof Set) return 'Set(' + value.size + ') {' + (value.size ? ' ... ' : '') + '}'
+
+      if (value instanceof WeakMap) return 'WeakMap { <items unknown> }'
+      if (value instanceof WeakSet) return 'WeakSet { <items unknown> }'
+
+      if (value instanceof Int8Array) return 'Int8Array(' + value.length + ') [' + (value.length ? ' ... ' : '') + ']'
+      if (value instanceof Int16Array) return 'Int16Array(' + value.length + ') [' + (value.length ? ' ... ' : '') + ']'
+      if (value instanceof Int32Array) return 'Int32Array(' + value.length + ') [' + (value.length ? ' ... ' : '') + ']'
+
+      return null
+    }
   }
 }
 
@@ -137,7 +193,7 @@ function adaptStream (stream) {
 
 // + should be non recursive
 // + should be able to stop at a max depth like 5 to avoid unnecessarily keep going
-/* function getObjectDepth (obj) {
+function getObjectDepth (obj) {
   return iterate(obj)
 
   function iterate (o) {
@@ -149,10 +205,26 @@ function adaptStream (stream) {
     }
     return 1
   }
-} */
+}
 
 function isObjectEmpty (obj) {
   for (const k in obj) return false // eslint-disable-line no-unreachable-loop
+  return true
+}
+
+// from stackoverflow obvs!
+function isAlphaNumeric (str) {
+  let code, i, len
+
+  for (i = 0, len = str.length; i < len; i++) {
+    code = str.charCodeAt(i)
+    if (!(code > 47 && code < 58) && // numeric (0-9)
+        !(code > 64 && code < 91) && // upper alpha (A-Z)
+        !(code > 96 && code < 123)) { // lower alpha (a-z)
+      return false
+    }
+  }
+
   return true
 }
 
