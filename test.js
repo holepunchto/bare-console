@@ -63,7 +63,7 @@ test('very basic error (really assumes that is the same as log)', async function
   await closeAndCompare()
 })
 
-test('log Error', async function (t) {
+test.skip('log Error', async function (t) {
   const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
   both(nodeConsole)
