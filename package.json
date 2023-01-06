@@ -1,5 +1,5 @@
 {
-  "name": "tiny-console",
+  "name": "@pearjs/console",
   "version": "0.0.0",
   "description": "Simple debugging console",
   "main": "index.js",
@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/holepunchto/tiny-console.git"
+    "url": "https://github.com/holepunchto/pearjs-console.git"
   },
   "author": "Lucas Barrena (LuKks)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/holepunchto/tiny-console/issues"
+    "url": "https://github.com/holepunchto/pearjs-console/issues"
   },
-  "homepage": "https://github.com/holepunchto/tiny-console",
+  "homepage": "https://github.com/holepunchto/pearjs-console",
   "devDependencies": {
     "brittle": "^3.1.1",
     "standard": "^17.0.0"

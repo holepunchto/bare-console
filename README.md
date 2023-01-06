@@ -1,14 +1,14 @@
-# tiny-console
+# @pearjs/console
 
-Simple debugging console.
+Simple debugging console
 
 ```
-npm i tiny-console
+npm i @pearjs/console
 ```
 
 ## Usage
 ```javascript
-const console = require('tiny-console')
+const console = require('@pearjs/console')
 
 console.log('Hello')
 console.error(new Error('Something happened'))
@@ -21,4 +21,5 @@ console.trace('Show me')
 ```
 
 ## License
+
 MIT
