@@ -1,10 +1,12 @@
 const { Crayon } = require('tiny-crayon')
-const crayon = new Crayon({ isTTY: true })
 
 class Console {
   constructor (opts = {}) {
-    this.log = this._print.bind(this, opts.stdout || process._stdout || process.stdout)
-    this.error = this._print.bind(this, opts.stderr || process._stderr || process.stderr)
+    const { isTTY } = adaptStream(opts.stdout || process._stdout || process.stdout)
+    this.crayon = new Crayon({ isTTY })
+
+    this.log = this._print.bind(this, adaptStream(opts.stdout || process._stdout || process.stdout))
+    this.error = this._print.bind(this, adaptStream(opts.stderr || process._stderr || process.stderr))
 
     this.timers = new Map()
   }
@@ -43,8 +45,6 @@ class Console {
   }
 
   _print (stream, ...args) {
-    if (typeof stream === 'function') stream = { write: stream } // +
-
     /* if (args.length === 0) {
       stream.write('\n')
       return
@@ -54,18 +54,19 @@ class Console {
       const arg = args[i]
       // console.log('args', i, arg)
 
-      if (typeof arg === 'undefined') stream.write(crayon.blackBright('undefined'))
-      else if (arg === null) stream.write(crayon.whiteBright(crayon.bold('null')))
+      if (typeof arg === 'undefined') stream.write(this.crayon.blackBright('undefined'))
+      else if (arg === null) stream.write(this.crayon.whiteBright(this.crayon.bold('null')))
       else if (typeof arg === 'string') stream.write(arg)
-      else if (typeof arg === 'number') stream.write(crayon.yellow(arg))
-      else if (typeof arg === 'boolean') stream.write(crayon.yellow(arg))
-      else if (typeof arg === 'function') stream.write(crayon.cyan(arg.name ? '[Function: ' + arg.name + ']' : '[Function (anonymous)]'))
+      else if (typeof arg === 'number') stream.write(this.crayon.yellow(arg))
+      else if (typeof arg === 'boolean') stream.write(this.crayon.yellow(arg))
+      else if (typeof arg === 'function') stream.write(this.crayon.cyan(arg.name ? '[Function: ' + arg.name + ']' : '[Function (anonymous)]'))
       else if (typeof arg === 'object') {
         // + maybe consider buffering output and write all at once, or just cork/uncork?
 
         const depth = getObjectDepth(arg)
         let levels = 0
 
+        const { crayon } = this
         iterateObject(arg)
 
         function iterateObject (arg) {
@@ -122,6 +123,14 @@ class Console {
   }
 }
 
+function adaptStream (stream) {
+  // pearjs
+  if (typeof stream === 'function') {
+    return { isTTY: true, write: stream }
+  }
+  return stream
+}
+
 // Simplified from https://github.com/crowelch/object-depth
 // + should be non recursive
 // + should be able to stop at a max depth like 5 to avoid unnecessarily keep going
@@ -144,6 +153,7 @@ function isObjectEmpty (obj) {
 }
 
 module.exports = new Console()
+module.exports.Console = Console
 
 /*
 Object [console] {
