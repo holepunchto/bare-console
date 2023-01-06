@@ -63,7 +63,7 @@ class Console {
       else if (typeof arg === 'object') {
         // + maybe consider buffering output and write all at once, or just cork/uncork?
 
-        const depth = getObjectDepth(arg)
+        // const depth = getObjectDepth(arg)
         let levels = 0
 
         const { crayon } = this
@@ -71,7 +71,7 @@ class Console {
 
         function iterateObject (arg) {
           const isArray = Array.isArray(arg)
- 
+
           if (++levels >= 4 && !isObjectEmpty(arg)) {
             let type = Array.isArray(arg) ? 'Array' : (typeof arg)
             type = type[0].toUpperCase() + type.slice(1)
@@ -131,24 +131,24 @@ function adaptStream (stream) {
   return stream
 }
 
-// Simplified from https://github.com/crowelch/object-depth
 // + should be non recursive
 // + should be able to stop at a max depth like 5 to avoid unnecessarily keep going
-function getObjectDepth (obj) {
+/* function getObjectDepth (obj) {
   return iterate(obj)
 
   function iterate (o) {
     for (const k in o) {
-      if (/* o.hasOwnProperty(k) && */ typeof o[k] === 'object') {
+      //  o.hasOwnProperty(k) &&
+      if (typeof o[k] === 'object') {
         return 1 + iterate(o[k])
       }
     }
     return 1
   }
-}
+} */
 
 function isObjectEmpty (obj) {
-  for (let k in obj) return false
+  for (const k in obj) return false // eslint-disable-line no-unreachable-loop
   return true
 }
 

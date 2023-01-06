@@ -55,7 +55,7 @@ test('deep objects', async function (t) {
 
     logger.log({ a: { b: { c: [{ d: { e: { f: { g: {} } } } }] } } })
 
-    logger.log({ a: { b: { a: {}, b: [], c: '', d: 1 } } } )
+    logger.log({ a: { b: { a: {}, b: [], c: '', d: 1 } } })
   }
 
   await closeAndCompare()
@@ -68,7 +68,7 @@ test.skip('spacing', async function (t) {
   both(tinyConsole)
 
   function both (logger) {
-    logger.log({ a: { b: { a: { a:1 }, b: [1], c: 'aa', d: 123, e: () => {}, f: NaN } } })
+    logger.log({ a: { b: { a: { a: 1 }, b: [1], c: 'aa', d: 123, e: () => {}, f: NaN } } })
   }
 
   await closeAndCompare()
