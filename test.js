@@ -42,6 +42,27 @@ test('basic log', async function (t) {
   await closeAndCompare()
 })
 
+test('very basic error (really assumes that is the same as log)', async function (t) {
+  const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+  both(nodeConsole)
+  both(tinyConsole)
+
+  function both (logger) {
+    logger.error()
+    logger.error(undefined)
+    logger.error(null)
+    logger.error('hello')
+    logger.error(123)
+    logger.error(true)
+    logger.error(function () {})
+    logger.error([])
+    logger.error({})
+  }
+
+  await closeAndCompare()
+})
+
 test('log Error', async function (t) {
   const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
