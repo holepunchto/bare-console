@@ -98,7 +98,7 @@ class Console {
             } else if (typeof arg[k] === 'object') {
               iterateObject(arg[k])
             } else {
-              stream.write('*not-supported-yet:' + (typeof arg[k]) + '-' + arg[k] + '*')
+              throw new Error('Argument not supported (' + (typeof arg[k]) + '): ' + arg[k])
             }
           }
 
