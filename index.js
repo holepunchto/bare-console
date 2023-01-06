@@ -29,9 +29,9 @@ class Console {
     }
 
     const d = process.hrtime(started)
+    const ms = d[0] * 1e3 + d[1] / 1e6
     this.times.delete(label)
 
-    const ms = d[0] * 1e3 + d[1] / 1e6
     if (ms > 1000) this.log(label + ': ' + (ms / 1000).toFixed(3) + 's')
     else this.log(label + ': ' + ms.toFixed(3) + 'ms')
   }
@@ -45,6 +45,8 @@ class Console {
 
     this.error('Trace: ' + messages.join(' ') + stack.slice(start))
   }
+
+  // + clear () {}
 
   _print (stream, ...args) {
     // + buffer output?
@@ -218,32 +220,3 @@ function isAlphaNumeric (str) {
 
 module.exports = new Console()
 module.exports.Console = Console
-
-/*
-Object [console] {
-  log: [Function: log],
-  warn: [Function: warn],
-  dir: [Function: dir],
-  time: [Function: time],
-  timeEnd: [Function: timeEnd],
-  timeLog: [Function: timeLog],
-  trace: [Function: trace],
-  assert: [Function: assert],
-  clear: [Function: clear],
-  count: [Function: count],
-  countReset: [Function: countReset],
-  group: [Function: group],
-  groupEnd: [Function: groupEnd],
-  table: [Function: table],
-  debug: [Function: debug],
-  info: [Function: info],
-  dirxml: [Function: dirxml],
-  error: [Function: error],
-  groupCollapsed: [Function: groupCollapsed],
-  Console: [Function: Console],
-  profile: [Function: profile],
-  profileEnd: [Function: profileEnd],
-  timeStamp: [Function: timeStamp],
-  context: [Function: context]
-}
-*/
