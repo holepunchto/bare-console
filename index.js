@@ -21,12 +21,13 @@ class Console {
   }
 
   timeEnd (label = 'default') {
-    if (!this.times.has(label)) {
+    const started = this.times.get(label)
+
+    if (!started) {
       this.error('Warning: No such label \'' + label + '\' for console.timeEnd()')
       return
     }
 
-    const started = this.times.get(label)
     const d = process.hrtime(started)
     this.times.delete(label)
 
