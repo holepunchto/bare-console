@@ -108,18 +108,32 @@ test('native classes', async function (t) {
   await closeAndCompare()
 })
 
-test.skip('log Error', async function (t) {
+test('errors', async function (t) {
   const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
   const error = new Error('Something happened')
+  const evalError = new EvalError('Something happened', 'example.js', 10)
+  const rangeError = new RangeError('Something happened')
+  const referenceError = new ReferenceError('Something happened')
+  const syntaxError = new SyntaxError('Something happened')
+  const typeError = new TypeError('Something happened')
+  const uriError = new URIError('Something happened')
 
   both(nodeConsole)
   both(tinyConsole)
 
   function both (logger) {
     logger.error(error)
-    logger.error([error])
-    logger.error({ err: error })
+    logger.error(evalError)
+    logger.error(rangeError)
+    logger.error(referenceError)
+    logger.error(syntaxError)
+    logger.error(typeError)
+    logger.error(uriError)
+
+    // + spacing is different
+    // logger.error([error])
+    // logger.error({ err: error })
   }
 
   await closeAndCompare()

@@ -161,8 +161,8 @@ class Console {
       if (typeof value === 'function') return crayon.cyan(value.name ? '[Function: ' + value.name + ']' : '[Function (anonymous)]')
       if (typeof value === 'symbol') return crayon.green(value.toString())
 
-      if (value instanceof Error) return value.stack
       if (value instanceof Promise) return 'Promise'
+      if (value instanceof Error) return value.stack // This includes EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError
       if (value instanceof String) return "[String: '" + value.toString() + "']" // + dynamic quotes
       if (value instanceof Number) return '[Number: ' + value.toString() + ']'
       if (value instanceof Boolean) return '[Boolean: ' + value.toString() + ']'
