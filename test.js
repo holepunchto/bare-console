@@ -413,6 +413,20 @@ test.skip('promises', async function (t) {
   await closeAndCompare()
 })
 
+test('regular expressions', async function (t) {
+  const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+  both(nodeConsole)
+  both(tinyConsole)
+
+  function both (logger) {
+    const regex = new RegExp(/abc/, 'i')
+    logger.log(regex)
+  }
+
+  await closeAndCompare()
+})
+
 test.skip('spacing', async function (t) {
   const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
