@@ -164,6 +164,7 @@ class Console {
       if (value instanceof Promise) return 'Promise'
       if (value instanceof RegExp) return value.toString()
 
+      // + AggregateError?
       if (value instanceof Error) return value.stack // This includes EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError
       if (value instanceof String) return "[String: '" + value.toString() + "']" // + dynamic quotes
       if (value instanceof Number) return '[Number: ' + value.toString() + ']'
