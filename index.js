@@ -51,7 +51,6 @@ class Console {
   _print (stream, ...args) {
     // + buffer output?
     const { crayon } = this
-    const refs = new WeakSet()
 
     for (let i = 0; i < args.length; i++) {
       const arg = args[i]
@@ -66,12 +65,9 @@ class Console {
 
         iterateObject(arg)
 
-        function iterateObject (arg) {
-          if (refs.has(arg)) {
-            stream.write(crayon.cyan('[Circular]'))
-            return
-          }
-          refs.add(arg)
+        function iterateObject (arg, backward = new WeakSet(), forward = new WeakSet(), add = true) {
+          if (add) backward.add(arg)
+          else forward.add(arg)
 
           const spacingStart = isDeep ? '  '.repeat(levels + 1) : ''
           const spacingEnd = isDeep ? '  '.repeat(levels) : ''
@@ -104,7 +100,12 @@ class Console {
             if (single !== null) {
               stream.write(single)
             } else if (typeof v === 'object') {
-              iterateObject(v)
+              if (backward.has(v) || (!add && forward.has(v))) {
+                stream.write(crayon.cyan('[Circular]'))
+                continue
+              }
+
+              iterateObject(v, backward, forward, false)
             } else {
               throw new Error('Argument not supported (' + (typeof v) + '): ' + v)
             }

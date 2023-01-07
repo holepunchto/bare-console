@@ -349,6 +349,17 @@ test.skip('circular references', async function (t) {
     const obj4 = [{ root: null }]
     obj4[0].root = obj4
     logger.log(obj4)
+
+    const o = {}
+    const obj5 = { a: o, b: o }
+    logger.log(obj5)
+
+    const obj6 = [o, o]
+    logger.log(obj6)
+
+    const obj7 = [o, obj, o]
+    obj7.obj = obj
+    logger.log(obj7)
   }
 
   await closeAndCompare()
