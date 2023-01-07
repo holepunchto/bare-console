@@ -51,6 +51,7 @@ class Console {
   _print (stream, ...args) {
     // + buffer output?
     const { crayon } = this
+    const refs = new WeakSet()
 
     for (let i = 0; i < args.length; i++) {
       const arg = args[i]
@@ -66,6 +67,12 @@ class Console {
         iterateObject(arg)
 
         function iterateObject (arg) {
+          if (refs.has(arg)) {
+            stream.write(crayon.cyan('[Circular]'))
+            return
+          }
+          refs.add(arg)
+
           const spacingStart = isDeep ? '  '.repeat(levels + 1) : ''
           const spacingEnd = isDeep ? '  '.repeat(levels) : ''
           const isArray = Array.isArray(arg)

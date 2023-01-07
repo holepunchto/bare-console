@@ -327,6 +327,33 @@ test('array but has a key value', async function (t) {
   await closeAndCompare()
 })
 
+test.skip('circular references', async function (t) {
+  const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+  both(nodeConsole)
+  both(tinyConsole)
+
+  function both (logger) {
+    const obj = { root: null }
+    obj.root = obj
+    logger.log(obj)
+
+    const obj2 = [{ root: null }]
+    obj2.root = obj2
+    logger.log(obj2)
+
+    const obj3 = { sub: { root: null, sub2: { obj, obj2 } } }
+    obj3.sub.root = obj3
+    logger.log(obj3)
+
+    const obj4 = [{ root: null }]
+    obj4[0].root = obj4
+    logger.log(obj4)
+  }
+
+  await closeAndCompare()
+})
+
 test.skip('spacing', async function (t) {
   const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
