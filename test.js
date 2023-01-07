@@ -420,7 +420,7 @@ test('regular expressions', async function (t) {
   both(tinyConsole)
 
   function both (logger) {
-    const regex = new RegExp(/abc/, 'i')
+    const regex = new RegExp('ab' + 'c', 'i')
     logger.log(regex)
   }
 
