@@ -177,6 +177,10 @@ class Console {
       if (value instanceof Int16Array) return 'Int16Array(' + value.length + ') ' + outputArray(value)
       if (value instanceof Int32Array) return 'Int32Array(' + value.length + ') ' + outputArray(value)
 
+      if (value instanceof Uint8Array) return 'Uint8Array(' + value.length + ') ' + outputArray(value)
+      if (value instanceof Uint16Array) return 'Uint16Array(' + value.length + ') ' + outputArray(value)
+      if (value instanceof Uint32Array) return 'Uint32Array(' + value.length + ') ' + outputArray(value)
+
       return null
     }
   }
