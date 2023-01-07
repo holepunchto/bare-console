@@ -385,6 +385,20 @@ test.skip('circular references', async function (t) {
   await closeAndCompare()
 })
 
+test.skip('promises', async function (t) {
+  const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+  both(nodeConsole)
+  both(tinyConsole)
+
+  function both (logger) {
+    const resolved = Promise.resolve('hi')
+    logger.log(resolved)
+  }
+
+  await closeAndCompare()
+})
+
 test.skip('spacing', async function (t) {
   const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
