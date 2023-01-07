@@ -82,23 +82,24 @@ class Console {
           let first = true
 
           for (const key in arg) {
-            const k = isArray ? parseInt(key, 10) : key
-
             if (first) stream.write(isDeep ? '\n' + spacingStart : ' ')
             else stream.write(isDeep ? ',\n' + spacingStart : ', ')
             first = false
 
-            const isNumeric = isFinite(k)
-            const name = isArray && isNumeric ? '' : (generateSingleKey(key) + ': ')
+            const k = isArray ? parseInt(key, 10) : key
+            const isNumeric = isArray && isFinite(k)
+            const v = arg[isNumeric ? k : key]
+
+            const name = isNumeric ? '' : (generateSingleKey(key) + ': ')
             stream.write(name)
 
-            const single = generateSingleValue(arg[k], { stringColor: true })
+            const single = generateSingleValue(v, { stringColor: true })
             if (single !== null) {
               stream.write(single)
-            } else if (typeof arg[k] === 'object') {
-              iterateObject(arg[k])
+            } else if (typeof v === 'object') {
+              iterateObject(v)
             } else {
-              throw new Error('Argument not supported (' + (typeof arg[k]) + '): ' + arg[k])
+              throw new Error('Argument not supported (' + (typeof v) + '): ' + v)
             }
           }
 

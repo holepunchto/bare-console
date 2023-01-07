@@ -308,6 +308,25 @@ test.skip('native Int8Array, Int16Array, and Int32Array', async function (t) {
   }
 })
 
+test('array but has a key value', async function (t) {
+  const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+  both(nodeConsole)
+  both(tinyConsole)
+
+  function both (logger) {
+    const arr = [1, 2, 3]
+    arr.kv = 'hi'
+    logger.log(arr)
+
+    const arr2 = [1, 2, 3]
+    arr2.kv = { prop: 'hi' }
+    logger.log(arr2)
+  }
+
+  await closeAndCompare()
+})
+
 test.skip('spacing', async function (t) {
   const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
