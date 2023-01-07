@@ -59,7 +59,7 @@ class Console {
       if (single !== null) {
         stream.write(single)
       } else if (typeof arg === 'object') {
-        const depth = getObjectDepth(arg)
+        const depth = getObjectDepth(arg, 10)
         const isDeep = depth >= 999 // + 3 // spacing temporarily disabled
         let levels = 0
 
@@ -213,20 +213,27 @@ function adaptStream (stream) {
   return stream
 }
 
-// + should be non recursive
-// + should be able to stop at a max depth like 5 to avoid unnecessarily keep going
-function getObjectDepth (obj) {
-  return iterate(obj)
+function getObjectDepth (obj, maxDepth = Infinity) {
+  const refs = new WeakSet()
+  const stack = [obj]
+  let depth = 1
 
-  function iterate (o) {
+  while (stack.length) {
+    const o = stack.pop()
+
     for (const k in o) {
-      //  o.hasOwnProperty(k) &&
-      if (typeof o[k] === 'object') {
-        return 1 + iterate(o[k])
+      if (typeof o[k] !== 'object') continue // || !o.hasOwnProperty(k)
+      if (refs.has(o[k])) continue
+      if (++depth >= maxDepth) return depth
+
+      if (o[k] !== null) {
+        refs.add(o[k])
+        stack.push(o[k])
       }
     }
-    return 1
   }
+
+  return depth
 }
 
 function isObjectEmpty (obj) {
