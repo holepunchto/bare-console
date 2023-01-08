@@ -69,8 +69,8 @@ class Console {
           if (add) backward.add(arg)
           else forward.add(arg)
 
-          const spacingStart = isDeep ? '  '.repeat(levels + 1) : ''
-          const spacingEnd = isDeep ? '  '.repeat(levels) : ''
+          const spacingStart = isDeep ? '\n' + '  '.repeat(levels + 1) : ''
+          const spacingEnd = isDeep ? '\n' + '  '.repeat(levels) : ''
           const isArray = Array.isArray(arg)
 
           if (++levels >= 4 && !isObjectEmpty(arg)) {
@@ -85,8 +85,7 @@ class Console {
           let first = true
 
           for (const key in arg) {
-            if (first) stream.write(isDeep ? '\n' + spacingStart : ' ')
-            else stream.write(isDeep ? ',\n' + spacingStart : ', ')
+            stream.write((first ? '' : ',') + (isDeep ? spacingStart : ' '))
             first = false
 
             const k = isArray ? parseInt(key, 10) : key
@@ -114,8 +113,7 @@ class Console {
           const symbols = Object.getOwnPropertySymbols(arg)
 
           for (const symbol of symbols) {
-            if (first) stream.write(isDeep ? '\n' + spacingStart : ' ')
-            else stream.write(isDeep ? ',\n' + spacingStart : ', ')
+            stream.write((first ? '' : ',') + (isDeep ? spacingStart : ' '))
             first = false
 
             const name = isArray ? '' : ('[' + symbol.toString() + ']: ')
@@ -125,7 +123,7 @@ class Console {
             stream.write(single)
           }
 
-          if (!first) stream.write(isDeep ? '\n' + spacingEnd : ' ')
+          if (!first) stream.write(isDeep ? spacingEnd : ' ')
 
           stream.write(isArray ? ']' : '}')
 
