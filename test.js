@@ -302,6 +302,39 @@ test.skip('native WeakMap', async function (t) {
   await closeAndCompare()
 })
 
+// + not implemented yet!
+test.skip('array with empty values', async function (t) {
+  const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+  both(nodeConsole)
+  both(tinyConsole)
+
+  function both (logger) {
+    const arr = new Array() // eslint-disable-line no-array-constructor
+    logger.log(arr) // []
+
+    const arr2 = new Array(1)
+    logger.log(arr2) // [ <1 empty item> ]
+
+    const arr3 = new Array(2)
+    logger.log(arr3) // [ <2 empty items> ]
+
+    const arr4 = new Array(4)
+    arr4[0] = true
+    logger.log(arr4) // [ true, <3 empty items> ]
+
+    const arr5 = new Array(4)
+    arr5[1] = true
+    logger.log(arr5) // [ <1 empty item>, true, <2 empty items> ]
+
+    const arr6 = new Array(4)
+    arr6[arr6.length - 1] = true
+    logger.log(arr6) // [ <3 empty items>, true ]
+  }
+
+  await closeAndCompare()
+})
+
 test.skip('native Int8Array, Int16Array, and Int32Array', async function (t) {
   for (const length of [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]) {
     t.test('length ' + length, async function (t) {
