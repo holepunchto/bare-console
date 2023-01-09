@@ -59,15 +59,18 @@ class Console {
       if (single !== null) {
         stream.write(single)
       } else if (typeof arg === 'object') {
-        const depth = getObjectDepth(arg)
+        const depth = getObjectDepth(arg, 10)
         const isDeep = depth >= 999 // + 3 // spacing temporarily disabled
         let levels = 0
 
         iterateObject(arg)
 
-        function iterateObject (arg) {
-          const spacingStart = isDeep ? '  '.repeat(levels + 1) : ''
-          const spacingEnd = isDeep ? '  '.repeat(levels) : ''
+        function iterateObject (arg, backward = new WeakSet(), forward = new WeakSet(), add = true) {
+          if (add) backward.add(arg)
+          else forward.add(arg)
+
+          const spacingStart = isDeep ? '\n' + '  '.repeat(levels + 1) : ''
+          const spacingEnd = isDeep ? '\n' + '  '.repeat(levels) : ''
           const isArray = Array.isArray(arg)
 
           if (++levels >= 4 && !isObjectEmpty(arg)) {
@@ -82,31 +85,35 @@ class Console {
           let first = true
 
           for (const key in arg) {
-            const k = isArray ? parseInt(key, 10) : key
-
-            if (first) stream.write(isDeep ? '\n' + spacingStart : ' ')
-            else stream.write(isDeep ? ',\n' + spacingStart : ', ')
+            stream.write((first ? '' : ',') + (isDeep ? spacingStart : ' '))
             first = false
 
-            const isNumeric = isFinite(k)
-            const name = isArray && isNumeric ? '' : (generateSingleKey(key) + ': ')
+            const k = isArray ? parseInt(key, 10) : key
+            const isNumeric = isArray && isFinite(k)
+            const v = arg[isNumeric ? k : key]
+
+            const name = isNumeric ? '' : (generateSingleKey(key) + ': ')
             stream.write(name)
 
-            const single = generateSingleValue(arg[k], { stringColor: true })
+            const single = generateSingleValue(v, { stringColor: true })
             if (single !== null) {
               stream.write(single)
-            } else if (typeof arg[k] === 'object') {
-              iterateObject(arg[k])
+            } else if (typeof v === 'object') {
+              if (backward.has(v) || (!add && forward.has(v))) {
+                stream.write(crayon.cyan('[Circular]'))
+                continue
+              }
+
+              iterateObject(v, backward, forward, false)
             } else {
-              throw new Error('Argument not supported (' + (typeof arg[k]) + '): ' + arg[k])
+              throw new Error('Argument not supported (' + (typeof v) + '): ' + v)
             }
           }
 
           const symbols = Object.getOwnPropertySymbols(arg)
 
           for (const symbol of symbols) {
-            if (first) stream.write(isDeep ? '\n' + spacingStart : ' ')
-            else stream.write(isDeep ? ',\n' + spacingStart : ', ')
+            stream.write((first ? '' : ',') + (isDeep ? spacingStart : ' '))
             first = false
 
             const name = isArray ? '' : ('[' + symbol.toString() + ']: ')
@@ -116,7 +123,7 @@ class Console {
             stream.write(single)
           }
 
-          if (!first) stream.write(isDeep ? '\n' + spacingEnd : ' ')
+          if (!first) stream.write(isDeep ? spacingEnd : ' ')
 
           stream.write(isArray ? ']' : '}')
 
@@ -152,7 +159,11 @@ class Console {
       if (typeof value === 'function') return crayon.cyan(value.name ? '[Function: ' + value.name + ']' : '[Function (anonymous)]')
       if (typeof value === 'symbol') return crayon.green(value.toString())
 
-      if (value instanceof Error) return value.stack
+      if (value instanceof Promise) return 'Promise'
+      if (value instanceof RegExp) return value.toString()
+
+      // + AggregateError?
+      if (value instanceof Error) return value.stack // This includes EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError
       if (value instanceof String) return "[String: '" + value.toString() + "']" // + dynamic quotes
       if (value instanceof Number) return '[Number: ' + value.toString() + ']'
       if (value instanceof Boolean) return '[Boolean: ' + value.toString() + ']'
@@ -164,13 +175,48 @@ class Console {
       if (value instanceof WeakMap) return 'WeakMap { <items unknown> }'
       if (value instanceof WeakSet) return 'WeakSet { <items unknown> }'
 
-      if (value instanceof Int8Array) return 'Int8Array(' + value.length + ') [' + (value.length ? ' ... ' : '') + ']'
-      if (value instanceof Int16Array) return 'Int16Array(' + value.length + ') [' + (value.length ? ' ... ' : '') + ']'
-      if (value instanceof Int32Array) return 'Int32Array(' + value.length + ') [' + (value.length ? ' ... ' : '') + ']'
+      if (value instanceof Int8Array) return 'Int8Array(' + value.length + ') ' + outputArray(value)
+      if (value instanceof Int16Array) return 'Int16Array(' + value.length + ') ' + outputArray(value)
+      if (value instanceof Int32Array) return 'Int32Array(' + value.length + ') ' + outputArray(value)
+
+      if (value instanceof Uint8Array) return 'Uint8Array(' + value.length + ') ' + outputArray(value)
+      if (value instanceof Uint16Array) return 'Uint16Array(' + value.length + ') ' + outputArray(value)
+      if (value instanceof Uint32Array) return 'Uint32Array(' + value.length + ') ' + outputArray(value)
 
       return null
     }
   }
+}
+
+function outputArray (arr) {
+  if (arr.length === 0) return '[]'
+
+  const max = arr.length > 64 ? 64 : arr.length // + Node is 100 + dynamic spacing depending on 16, 32, etc
+  const addSpaces = arr.length > 16
+
+  let first = true
+  let output = '['
+
+  for (let i = 0; i < max; i++) {
+    if (first) output += addSpaces ? '\n  ' : ' '
+    else output += addSpaces ? ',' + (i % 16 === 0 ? '\n  ' : ' ') : ', '
+    first = false
+
+    output += arr[i]
+  }
+
+  if (arr.length > 64) {
+    const left = arr.length - 64
+
+    output += addSpaces ? ',\n  ' : ', '
+    output += '... ' + left + ' more item' + (left >= 2 ? 's' : '')
+  }
+
+  if (!first) output += addSpaces ? '\n' : ' '
+
+  output += ']'
+
+  return output
 }
 
 function adaptStream (stream) {
@@ -181,20 +227,27 @@ function adaptStream (stream) {
   return stream
 }
 
-// + should be non recursive
-// + should be able to stop at a max depth like 5 to avoid unnecessarily keep going
-function getObjectDepth (obj) {
-  return iterate(obj)
+function getObjectDepth (obj, maxDepth = Infinity) {
+  const refs = new WeakSet()
+  const stack = [obj]
+  let depth = 1
 
-  function iterate (o) {
+  while (stack.length) {
+    const o = stack.pop()
+
     for (const k in o) {
-      //  o.hasOwnProperty(k) &&
-      if (typeof o[k] === 'object') {
-        return 1 + iterate(o[k])
+      if (typeof o[k] !== 'object') continue // || !o.hasOwnProperty(k)
+      if (refs.has(o[k])) continue
+      if (++depth >= maxDepth) return depth
+
+      if (o[k] !== null) {
+        refs.add(o[k])
+        stack.push(o[k])
       }
     }
-    return 1
   }
+
+  return depth
 }
 
 function isObjectEmpty (obj) {

@@ -108,18 +108,32 @@ test('native classes', async function (t) {
   await closeAndCompare()
 })
 
-test.skip('log Error', async function (t) {
+test('errors', async function (t) {
   const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
   const error = new Error('Something happened')
+  const evalError = new EvalError('Something happened', 'example.js', 10)
+  const rangeError = new RangeError('Something happened')
+  const referenceError = new ReferenceError('Something happened')
+  const syntaxError = new SyntaxError('Something happened')
+  const typeError = new TypeError('Something happened')
+  const uriError = new URIError('Something happened')
 
   both(nodeConsole)
   both(tinyConsole)
 
   function both (logger) {
     logger.error(error)
-    logger.error([error])
-    logger.error({ err: error })
+    logger.error(evalError)
+    logger.error(rangeError)
+    logger.error(referenceError)
+    logger.error(syntaxError)
+    logger.error(typeError)
+    logger.error(uriError)
+
+    // + spacing is different
+    // logger.error([error])
+    // logger.error({ err: error })
   }
 
   await closeAndCompare()
@@ -306,6 +320,111 @@ test.skip('native Int8Array, Int16Array, and Int32Array', async function (t) {
       await closeAndCompare()
     })
   }
+})
+
+test.skip('native Uint8Array, Uint16Array, and Uint32Array', async function (t) {
+  for (const length of [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]) {
+    t.test('length ' + length, async function (t) {
+      const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+      both(nodeConsole)
+      both(tinyConsole)
+
+      function both (logger) {
+        const arr = new Array(length).fill(1)
+        logger.log(new Uint8Array(arr))
+        logger.log(new Uint16Array(arr))
+        logger.log(new Uint32Array(arr))
+      }
+
+      await closeAndCompare()
+    })
+  }
+})
+
+test('array but has a key value', async function (t) {
+  const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+  both(nodeConsole)
+  both(tinyConsole)
+
+  function both (logger) {
+    const arr = [1, 2, 3]
+    arr.kv = 'hi'
+    logger.log(arr)
+
+    const arr2 = [1, 2, 3]
+    arr2.kv = { prop: 'hi' }
+    logger.log(arr2)
+  }
+
+  await closeAndCompare()
+})
+
+test.skip('circular references', async function (t) {
+  const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+  both(nodeConsole)
+  both(tinyConsole)
+
+  function both (logger) {
+    const obj = { root: null }
+    obj.root = obj
+    logger.log(obj)
+
+    const obj2 = [{ root: null }]
+    obj2.root = obj2
+    logger.log(obj2)
+
+    const obj3 = { sub: { root: null, sub2: { obj, obj2 } } }
+    obj3.sub.root = obj3
+    logger.log(obj3)
+
+    const obj4 = [{ root: null }]
+    obj4[0].root = obj4
+    logger.log(obj4)
+
+    const o = {}
+    const obj5 = { a: o, b: o }
+    logger.log(obj5)
+
+    const obj6 = [o, o]
+    logger.log(obj6)
+
+    const obj7 = [o, obj, o]
+    obj7.obj = obj
+    logger.log(obj7)
+  }
+
+  await closeAndCompare()
+})
+
+test.skip('promises', async function (t) {
+  const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+  both(nodeConsole)
+  both(tinyConsole)
+
+  function both (logger) {
+    const resolved = Promise.resolve('hi')
+    logger.log(resolved)
+  }
+
+  await closeAndCompare()
+})
+
+test('regular expressions', async function (t) {
+  const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+  both(nodeConsole)
+  both(tinyConsole)
+
+  function both (logger) {
+    const regex = new RegExp('ab' + 'c', 'i')
+    logger.log(regex)
+  }
+
+  await closeAndCompare()
 })
 
 test.skip('spacing', async function (t) {
