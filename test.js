@@ -283,7 +283,7 @@ test('string keys', async function (t) {
 
   function both (logger) {
     logger.log({ property: true })
-    logger.log({ '_property': true })
+    logger.log({ _property: true })
     logger.log({ ' property': true })
     logger.log({ '-property': true })
   }
