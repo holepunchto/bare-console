@@ -234,6 +234,14 @@ function outputArray (arr) {
   return output
 }
 
+function adaptStream (stream) {
+  // pearjs
+  if (typeof stream === 'function') {
+    return { isTTY: true, write: stream }
+  }
+  return stream
+}
+
 class Paint {
   constructor () {
     this.prints = []
@@ -281,14 +289,6 @@ class Paint {
 
     return output
   }
-}
-
-function adaptStream (stream) {
-  // pearjs
-  if (typeof stream === 'function') {
-    return { isTTY: true, write: stream }
-  }
-  return stream
 }
 
 function isObjectEmpty (obj) {
