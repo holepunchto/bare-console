@@ -2,12 +2,12 @@ const { Crayon } = require('tiny-crayon')
 
 class Console {
   constructor (opts = {}) {
-    const { isTTY } = adaptStream(opts.stdout || process.stdout)
+    const { isTTY } = adaptStream(opts.stdout || opts.stderr)
     this.colors = typeof opts.colors === 'boolean' ? opts.colors : isTTY
     this.crayon = new Crayon({ isTTY: this.colors })
 
-    this.log = this._print.bind(this, adaptStream(opts.stdout || process.stdout))
-    this.error = this._print.bind(this, adaptStream(opts.stderr || process.stderr))
+    this.log = this._print.bind(this, adaptStream(opts.stdout))
+    this.error = this._print.bind(this, adaptStream(opts.stderr))
 
     this.times = new Map()
   }

@@ -7,11 +7,12 @@ const os = require('os')
 test('colors option', async function (t) {
   const tmpdir = createTmpDir(t)
   const ws = fs.createWriteStream(path.join(tmpdir, 'stdout.log'))
+  const noop = () => {}
 
-  t.ok((new TinyConsole()).colors)
+  t.ok((new TinyConsole({ stdout: noop })).colors)
 
-  t.ok((new TinyConsole({ colors: true })).colors)
-  t.absent((new TinyConsole({ colors: false })).colors)
+  t.ok((new TinyConsole({ stdout: noop, colors: true })).colors)
+  t.absent((new TinyConsole({ stdout: noop, colors: false })).colors)
 
   t.ok((new TinyConsole({ stdout: process.stdout })).colors)
   t.absent((new TinyConsole({ stdout: process.stdout, colors: false })).colors)
