@@ -55,11 +55,8 @@ class Console {
     let identifier = 0
 
     const buffering = (type, chunk = null, opts = null) => {
-      // + decouple colors from chunk, otherwise width is wrong
-      // console.log('buffering', type, { id: opts ? opts.id : undefined })
-
       if (typeof chunk === 'string') {
-        width.all += chunk.length
+        width.all += chunk.length // + decouple colors from chunk, otherwise width is wrong
 
         if (opts && opts.id !== undefined) {
           if (!width[opts.id]) width[opts.id] = { self: 0, child: 0 }
@@ -96,7 +93,7 @@ class Console {
             output += '\n' + '  '.repeat(print.levels)
             continue
           } else if (print.type === 'spacing-end') {
-            output += '\n' + '  '.repeat(print.levels > 0 ? print.levels - 1 : 0)
+            output += '\n' + '  '.repeat(print.levels - 1)
             continue
           }
         }
@@ -165,8 +162,7 @@ class Console {
               }
 
               const subWidth = iterateObject(v, backward, forward, false)
-              width[id].child += subWidth.self + subWidth.child
-              // console.log({ subWidth, width: width[id] })
+              width[id].child += subWidth.self + subWidth.child // + double check after colors fix
             } else {
               throw new Error('Argument not supported (' + (typeof v) + '): ' + v)
             }
