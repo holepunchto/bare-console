@@ -9,7 +9,7 @@ npm i @pearjs/console
 ## Usage
 ```javascript
 const Console = require('@pearjs/console')
-const console = new Console({ stdout: process.stdout, stdout: process.stderr })
+const console = new Console({ stdout: process.stdout, stderr: process.stderr })
 
 console.log('Hello')
 console.error(new Error('Something happened'))
