@@ -49,18 +49,17 @@ class Console {
   // + clear () {}
 
   _print (stream, ...args) {
-    // + buffer output?
     const { crayon } = this
+    const paint = new Paint()
+    let identifier = 0
 
     for (let i = 0; i < args.length; i++) {
       const arg = args[i]
 
       const single = generateSingleValue(arg)
       if (single !== null) {
-        stream.write(single)
+        paint.push('value', single)
       } else if (typeof arg === 'object') {
-        const depth = getObjectDepth(arg, 10)
-        const isDeep = depth >= 999 // + 3 // spacing temporarily disabled
         let levels = 0
 
         iterateObject(arg)
@@ -69,23 +68,30 @@ class Console {
           if (add) backward.add(arg)
           else forward.add(arg)
 
-          const spacingStart = isDeep ? '\n' + '  '.repeat(levels + 1) : ''
-          const spacingEnd = isDeep ? '\n' + '  '.repeat(levels) : ''
+          const id = identifier++
           const isArray = Array.isArray(arg)
 
-          if (++levels >= 4 && !isObjectEmpty(arg)) {
+          levels++
+
+          if (levels >= 4 && !isObjectEmpty(arg)) {
             let type = isArray ? 'Array' : (typeof arg)
             type = type[0].toUpperCase() + type.slice(1)
-            stream.write(crayon.cyan('[' + type + ']'))
-            return
+            paint.push('value', crayon.cyan('[' + type + ']'), { id })
+            levels--
+            return paint.width[id]
           }
 
-          stream.write(isArray ? '[' : '{')
+          paint.push('open', isArray ? '[' : '{', { id })
 
           let first = true
 
           for (const key in arg) {
-            stream.write((first ? '' : ',') + (isDeep ? spacingStart : ' '))
+            if (first) {
+              paint.push('spacing-start', null, { id, levels })
+            } else {
+              paint.push('separator', ',', { id })
+              paint.push('spacing-sep', null, { id, levels })
+            }
             first = false
 
             const k = isArray ? parseInt(key, 10) : key
@@ -93,18 +99,19 @@ class Console {
             const v = arg[isNumeric ? k : key]
 
             const name = isNumeric ? '' : (generateSingleKey(key) + ': ')
-            stream.write(name)
+            paint.push('key', name, { id })
 
             const single = generateSingleValue(v, { stringColor: true })
             if (single !== null) {
-              stream.write(single)
+              paint.push('value', single, { id })
             } else if (typeof v === 'object') {
               if (backward.has(v) || (!add && forward.has(v))) {
-                stream.write(crayon.cyan('[Circular]'))
+                paint.push('value', crayon.cyan('[Circular]'), { id })
                 continue
               }
 
-              iterateObject(v, backward, forward, false)
+              const subWidth = iterateObject(v, backward, forward, false)
+              paint.width[id].child += subWidth.self + subWidth.child // + double check after colors fix
             } else {
               throw new Error('Argument not supported (' + (typeof v) + '): ' + v)
             }
@@ -113,30 +120,38 @@ class Console {
           const symbols = Object.getOwnPropertySymbols(arg)
 
           for (const symbol of symbols) {
-            stream.write((first ? '' : ',') + (isDeep ? spacingStart : ' '))
+            if (first) {
+              paint.push('spacing-start', null, { id, levels })
+            } else {
+              paint.push('separator', ',')
+              paint.push('spacing-sep', null, { id, levels })
+            }
             first = false
 
             const name = isArray ? '' : ('[' + symbol.toString() + ']: ')
-            stream.write(name)
+            paint.push('key', name, { id })
 
             const single = generateSingleValue(arg[symbol])
-            stream.write(single)
+            paint.push('value', single, { id })
           }
 
-          if (!first) stream.write(isDeep ? spacingEnd : ' ')
+          if (!first) paint.push('spacing-end', null, { id, levels })
+          paint.push('close', isArray ? ']' : '}', { id })
 
-          stream.write(isArray ? ']' : '}')
+          levels--
 
-          levels = 0
+          return paint.width[id]
         }
       } else {
         throw new Error('Argument not supported (' + (typeof arg) + '): ' + arg)
       }
 
-      if (i + 1 !== args.length) stream.write(' ')
+      if (i + 1 !== args.length) paint.push('space', ' ')
     }
 
-    stream.write('\n')
+    paint.push('break-line', '\n')
+
+    stream.write(paint.done())
 
     function generateSingleKey (key) {
       if (key === '') return crayon.green("''")
@@ -228,27 +243,53 @@ function adaptStream (stream) {
   return stream
 }
 
-function getObjectDepth (obj, maxDepth = Infinity) {
-  const refs = new WeakSet()
-  const stack = [obj]
-  let depth = 1
-
-  while (stack.length) {
-    const o = stack.pop()
-
-    for (const k in o) {
-      if (typeof o[k] !== 'object') continue // || !o.hasOwnProperty(k)
-      if (refs.has(o[k])) continue
-      if (++depth >= maxDepth) return depth
-
-      if (o[k] !== null) {
-        refs.add(o[k])
-        stack.push(o[k])
-      }
-    }
+class Paint {
+  constructor () {
+    this.prints = []
+    this.width = { all: 0 }
   }
 
-  return depth
+  push (type, chunk = null, opts = null) {
+    if (typeof chunk === 'string') {
+      this.width.all += chunk.length // + if colors were decoupled from chunk then width would be correct
+
+      if (opts && opts.id !== undefined) {
+        if (!this.width[opts.id]) this.width[opts.id] = { self: 0, child: 0 }
+        this.width[opts.id].self += chunk.length
+      }
+    }
+
+    this.prints.push({ type, chunk, ...opts })
+  }
+
+  done () {
+    let output = ''
+
+    for (const print of this.prints) {
+      // raw
+      if (['open', 'close', 'key', 'value', 'separator', 'space', 'break-line'].indexOf(print.type) > -1) {
+        output += print.chunk
+        continue
+      }
+
+      // dynamic
+      if (print.type === 'spacing-start' || print.type === 'spacing-sep' || print.type === 'spacing-end') {
+        const totalWidth = this.width[print.id] ? (this.width[print.id].self + this.width[print.id].child) : this.width.all
+        const expand = totalWidth > 60 // + 64? double check after colors fix
+
+        if (!expand) output += ' '
+        else if (print.type === 'spacing-start') output += '\n' + '  '.repeat(print.levels)
+        else if (print.type === 'spacing-sep') output += '\n' + '  '.repeat(print.levels)
+        else if (print.type === 'spacing-end') output += '\n' + '  '.repeat(print.levels - 1)
+
+        continue
+      }
+
+      throw new Error('Invalid print: ' + JSON.stringify(print))
+    }
+
+    return output
+  }
 }
 
 function isObjectEmpty (obj) {
@@ -256,12 +297,9 @@ function isObjectEmpty (obj) {
   return true
 }
 
-// from stackoverflow obvs!
 function isAlphaNumeric (str) {
-  let code, i, len
-
-  for (i = 0, len = str.length; i < len; i++) {
-    code = str.charCodeAt(i)
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i)
     if (!(code > 47 && code < 58) && // numeric (0-9)
         !(code > 64 && code < 91) && // upper alpha (A-Z)
         !(code > 96 && code < 123)) { // lower alpha (a-z)

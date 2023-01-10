@@ -214,6 +214,45 @@ test('deep objects', async function (t) {
   await closeAndCompare()
 })
 
+test('spacing by width', async function (t) {
+  const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+  both(nodeConsole)
+  both(tinyConsole)
+
+  function both (logger) {
+    logger.log({ a: true, b: true, c: true, d: true, e: true, f: true, g: true }) // single-line
+    logger.log({ a: true, b: true, c: true, d: true, e: true, f: true, g: true, h: true }) // multi-line
+
+    logger.log({ a: 1, b: 1, c: 1, d: 1, e: 1, f: 1, g: 1, h: 1, i: 1, j: 1, k: 1 }) // single-line
+    logger.log({ a: 1, b: 1, c: 1, d: 1, e: 1, f: 1, g: 1, h: 1, i: 1, j: 1, k: 1, l: 1 }) // multi-line
+
+    // logger.log({ 'this-is-a-large-key-000000000000000000000000000000000000000000': 1 }) // single-line // + this should pass after colors fix
+    logger.log({ 'this-is-a-large-key-000000000000000000000000000000000': 1 }) // single-line
+    logger.log({ 'this-is-a-large-key-0000000000000000000000000000000000000000000': 1 }) // multi-line
+  }
+
+  await closeAndCompare()
+})
+
+test('spacing deep objects', async function (t) {
+  const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+  both(nodeConsole)
+  both(tinyConsole)
+
+  function both (logger) {
+    logger.log({ a: { bb: { ccc: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' } }, ddddd: { eeeee: true } })
+
+    logger.log({ a: { b: { c: 1 }, d: [1], e: 'aa', f: 123, g: () => {}, h: NaN } })
+    logger.log({ a: { bbbbbbbb: { c: 1 }, d: [1], e: 'aa', f: 123, g: () => {}, h: NaN } })
+
+    logger.log({ a: { b: { c: { d: 1 }, e: [1], f: 'aa', g: 123, h: () => {}, i: NaN } } })
+  }
+
+  await closeAndCompare()
+})
+
 test.skip('native Map', async function (t) {
   const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
@@ -424,21 +463,6 @@ test('regular expressions', async function (t) {
   function both (logger) {
     const regex = new RegExp('ab' + 'c', 'i')
     logger.log(regex)
-  }
-
-  await closeAndCompare()
-})
-
-test.skip('spacing', async function (t) {
-  const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
-
-  both(nodeConsole)
-  both(tinyConsole)
-
-  function both (logger) {
-    logger.log({ b: { a: { a: 1 }, b: [1], c: 'aa', d: 123, e: () => {}, f: NaN } })
-
-    logger.log({ a: { b: { a: { a: 1 }, b: [1], c: 'aa', d: 123, e: () => {}, f: NaN } } })
   }
 
   await closeAndCompare()
