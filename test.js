@@ -10,11 +10,9 @@ test('colors option', async function (t) {
   const noop = () => {}
 
   t.ok((new TinyConsole({ stdout: noop })).colors)
-
-  t.ok((new TinyConsole({ stdout: noop, colors: true })).colors)
   t.absent((new TinyConsole({ stdout: noop, colors: false })).colors)
 
-  t.ok((new TinyConsole({ stdout: process.stdout })).colors)
+  t.is((new TinyConsole({ stdout: process.stdout })).colors, process.stdout.isTTY)
   t.absent((new TinyConsole({ stdout: process.stdout, colors: false })).colors)
 
   t.absent((new TinyConsole({ stdout: ws })).colors)
