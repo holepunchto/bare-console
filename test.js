@@ -275,6 +275,22 @@ test.skip('spacing int array', async function (t) {
   await closeAndCompare()
 })
 
+test('string keys', async function (t) {
+  const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+  both(nodeConsole)
+  both(tinyConsole)
+
+  function both (logger) {
+    logger.log({ property: true })
+    logger.log({ _property: true })
+    logger.log({ ' property': true })
+    logger.log({ '-property': true })
+  }
+
+  await closeAndCompare()
+})
+
 test.skip('native Map', async function (t) {
   const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 

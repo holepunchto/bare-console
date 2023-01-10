@@ -159,7 +159,7 @@ class Console {
       const names = ['undefined', 'null', 'true', 'false', 'NaN', 'Infinity']
       if (names.indexOf(key) > -1) return key
 
-      if (isAlphaNumeric(key) && !isFinite(key)) return key
+      if (isKindOfAlphaNumeric(key) && !isFinite(key)) return key
 
       return crayon.green("'" + key + "'")
     }
@@ -297,12 +297,13 @@ function isObjectEmpty (obj) {
   return true
 }
 
-function isAlphaNumeric (str) {
+function isKindOfAlphaNumeric (str) {
   for (let i = 0; i < str.length; i++) {
     const code = str.charCodeAt(i)
     if (!(code > 47 && code < 58) && // numeric (0-9)
         !(code > 64 && code < 91) && // upper alpha (A-Z)
-        !(code > 96 && code < 123)) { // lower alpha (a-z)
+        !(code > 96 && code < 123) && // lower alpha (a-z)
+        !(code === 95)) { // underscore (_)
       return false
     }
   }
