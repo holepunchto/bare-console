@@ -24,6 +24,8 @@ test('basic log', async function (t) {
     logger.log(-123)
     logger.log(1.23)
     logger.log(Infinity)
+    logger.log(9007199254740991n)
+    logger.log(BigInt('0o377777777777777777'))
     logger.log(1, NaN, 3, Infinity, -4)
 
     logger.log(true)

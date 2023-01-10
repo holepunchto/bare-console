@@ -158,6 +158,7 @@ class Console {
       if (typeof value === 'boolean') return crayon.yellow(value)
       if (typeof value === 'function') return crayon.cyan(value.name ? '[Function: ' + value.name + ']' : '[Function (anonymous)]')
       if (typeof value === 'symbol') return crayon.green(value.toString())
+      if (typeof value === 'bigint') return value.toString() + 'n' // + edge case: typeof Object(1n) === 'object'
 
       if (value instanceof Promise) return 'Promise'
       if (value instanceof RegExp) return value.toString()
