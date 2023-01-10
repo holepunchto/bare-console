@@ -70,7 +70,7 @@ class Console {
       prints.push({ type, chunk, ...opts })
     }
 
-    const compute = (prints, spacingDepth = 0) => {
+    const compute = (prints) => {
       let output = ''
 
       for (const print of prints) {
@@ -83,9 +83,8 @@ class Console {
         // dynamic
         if (print.type === 'spacing-start' || print.type === 'spacing-sep' || print.type === 'spacing-end') {
           const expand = (width[print.id] !== undefined ? width[print.id].self + width[print.id].child : width.all) > 60 // + 64?
-          // console.log(print, { expand }, width[print.id])
 
-          if (!expand/* || print.id >= spacingDepth */) {
+          if (!expand) {
             output += ' '
             continue
           }
@@ -115,7 +114,6 @@ class Console {
       if (single !== null) {
         buffering('value', single)
       } else if (typeof arg === 'object') {
-        const depth = getObjectDepth(arg, 10)
         let levels = 0
 
         iterateObject(arg)
@@ -143,10 +141,10 @@ class Console {
 
           for (const key in arg) {
             if (first) {
-              buffering('spacing-start', null, { id, levels, depth })
+              buffering('spacing-start', null, { id, levels })
             } else {
               buffering('separator', ',', { id })
-              buffering('spacing-sep', null, { id, levels, depth })
+              buffering('spacing-sep', null, { id, levels })
             }
             first = false
 
@@ -178,10 +176,10 @@ class Console {
 
           for (const symbol of symbols) {
             if (first) {
-              buffering('spacing-start', null, { id, levels, depth })
+              buffering('spacing-start', null, { id, levels })
             } else {
               buffering('separator', ',')
-              buffering('spacing-sep', null, { id, levels, depth })
+              buffering('spacing-sep', null, { id, levels })
             }
             first = false
 
@@ -192,7 +190,7 @@ class Console {
             buffering('value', single, { id })
           }
 
-          if (!first) buffering('spacing-end', null, { id, levels, depth })
+          if (!first) buffering('spacing-end', null, { id, levels })
           buffering('close', isArray ? ']' : '}', { id })
 
           levels--
@@ -208,14 +206,6 @@ class Console {
 
     buffering('break-line', '\n')
 
-    // + optimize!
-    /* let output = null
-    for (let i = 0; i < 4; i++) {
-      output = compute(prints, i)
-      const longestLine = output.split('\n').reduce((a, b) => a.length > b.length ? a : b)
-      if (longestLine.length < 60) break
-    }
-    stream.write(output) */
     const output = compute(prints)
     stream.write(output)
 
@@ -308,40 +298,14 @@ function adaptStream (stream) {
   return stream
 }
 
-function getObjectDepth (obj, maxDepth = Infinity) {
-  const refs = new WeakSet()
-  const stack = [obj]
-  let depth = 1
-
-  while (stack.length) {
-    const o = stack.pop()
-
-    for (const k in o) {
-      if (typeof o[k] !== 'object') continue // || !o.hasOwnProperty(k)
-      if (refs.has(o[k])) continue
-      if (++depth >= maxDepth) return depth
-
-      if (o[k] !== null) {
-        refs.add(o[k])
-        stack.push(o[k])
-      }
-    }
-  }
-
-  return depth
-}
-
 function isObjectEmpty (obj) {
   for (const k in obj) return false // eslint-disable-line no-unreachable-loop
   return true
 }
 
-// from stackoverflow obvs!
 function isAlphaNumeric (str) {
-  let code, i, len
-
-  for (i = 0, len = str.length; i < len; i++) {
-    code = str.charCodeAt(i)
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i)
     if (!(code > 47 && code < 58) && // numeric (0-9)
         !(code > 64 && code < 91) && // upper alpha (A-Z)
         !(code > 96 && code < 123)) { // lower alpha (a-z)
