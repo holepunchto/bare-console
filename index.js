@@ -51,7 +51,7 @@ class Console {
   _print (stream, ...args) {
     const { crayon } = this
     const prints = []
-    let width = { all: 0 }
+    const width = { all: 0 }
     let identifier = 0
 
     const buffering = (type, chunk = null, opts = null) => {
@@ -91,13 +91,13 @@ class Console {
           }
 
           if (print.type === 'spacing-start') {
-            output += '\n' + '  '.repeat(print.levels2)
+            output += '\n' + '  '.repeat(print.levels)
             continue
           } else if (print.type === 'spacing-sep') {
-            output += '\n' + '  '.repeat(print.levels2)
+            output += '\n' + '  '.repeat(print.levels)
             continue
           } else if (print.type === 'spacing-end') {
-            output += '\n' + '  '.repeat(print.levels2 > 0 ? print.levels2 - 1 : 0)
+            output += '\n' + '  '.repeat(print.levels > 0 ? print.levels - 1 : 0)
             continue
           }
         }
@@ -117,7 +117,6 @@ class Console {
       } else if (typeof arg === 'object') {
         const depth = getObjectDepth(arg, 10)
         let levels = 0
-        let levels2 = 0
 
         iterateObject(arg)
 
@@ -128,13 +127,13 @@ class Console {
           const id = identifier++
           const isArray = Array.isArray(arg)
 
-          levels2++
+          levels++
 
-          if (levels2 /*++levels*/ >= 4 && !isObjectEmpty(arg)) {
+          if (levels >= 4 && !isObjectEmpty(arg)) {
             let type = isArray ? 'Array' : (typeof arg)
             type = type[0].toUpperCase() + type.slice(1)
             buffering('value', crayon.cyan('[' + type + ']'), { id })
-            levels2--
+            levels--
             return width[id]
           }
 
@@ -144,10 +143,10 @@ class Console {
 
           for (const key in arg) {
             if (first) {
-              buffering('spacing-start', null, { id, levels2, depth })
+              buffering('spacing-start', null, { id, levels, depth })
             } else {
               buffering('separator', ',', { id })
-              buffering('spacing-sep', null, { id, levels2, depth })
+              buffering('spacing-sep', null, { id, levels, depth })
             }
             first = false
 
@@ -179,10 +178,10 @@ class Console {
 
           for (const symbol of symbols) {
             if (first) {
-              buffering('spacing-start', null, { id, levels2, depth })
+              buffering('spacing-start', null, { id, levels, depth })
             } else {
               buffering('separator', ',')
-              buffering('spacing-sep', null, { id, levels2, depth })
+              buffering('spacing-sep', null, { id, levels, depth })
             }
             first = false
 
@@ -193,11 +192,10 @@ class Console {
             buffering('value', single, { id })
           }
 
-          if (!first) buffering('spacing-end', null, { id, levels2, depth })
+          if (!first) buffering('spacing-end', null, { id, levels, depth })
           buffering('close', isArray ? ']' : '}', { id })
 
-          levels = 0
-          levels2--
+          levels--
 
           return width[id]
         }
