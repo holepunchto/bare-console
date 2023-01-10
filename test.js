@@ -14,7 +14,10 @@ test('colors option', async function (t) {
   t.absent((new TinyConsole({ colors: false })).colors)
 
   t.ok((new TinyConsole({ stdout: process.stdout })).colors)
+  t.absent((new TinyConsole({ stdout: process.stdout, colors: false })).colors)
+
   t.absent((new TinyConsole({ stdout: ws })).colors)
+  t.ok((new TinyConsole({ stdout: ws, colors: true })).colors)
 
   await new Promise(resolve => {
     ws.end()
