@@ -253,6 +253,28 @@ test('spacing deep objects', async function (t) {
   await closeAndCompare()
 })
 
+test.skip('spacing int array', async function (t) {
+  const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+  both(nodeConsole)
+  both(tinyConsole)
+
+  function both (logger) {
+    logger.log({ a: { bb: new Int8Array([1, 2, 3, 4]) }, ccc: { dddd: true } })
+
+    logger.log({ a: { bb: new Int8Array([1, 2, 3, 4, 1, 2, 3, 4]) }, ccc: { dddd: true } })
+
+    logger.log({ a: { bb: new Int8Array([1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4]) }, ccc: { dddd: true } })
+
+    const arr4 = new Array(76).fill(1)
+    logger.log({ a: { bb: new Int8Array(arr4) }, ccc: { dddd: true } })
+
+    logger.log({ a: { bb: { ccc: new Int8Array([1, 2, 3, 4]) } }, dddd: { eeeee: true } })
+  }
+
+  await closeAndCompare()
+})
+
 test.skip('native Map', async function (t) {
   const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
