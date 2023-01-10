@@ -2,11 +2,12 @@ const { Crayon } = require('tiny-crayon')
 
 class Console {
   constructor (opts = {}) {
-    const { isTTY } = adaptStream(opts.stdout || process._stdout || process.stdout)
-    this.crayon = new Crayon({ isTTY })
+    const { isTTY } = adaptStream(opts.stdout || process.stdout)
+    this.colors = typeof opts.colors === 'boolean' ? opts.colors : isTTY
+    this.crayon = new Crayon({ isTTY: this.colors })
 
-    this.log = this._print.bind(this, adaptStream(opts.stdout || process._stdout || process.stdout))
-    this.error = this._print.bind(this, adaptStream(opts.stderr || process._stderr || process.stderr))
+    this.log = this._print.bind(this, adaptStream(opts.stdout || process.stdout))
+    this.error = this._print.bind(this, adaptStream(opts.stderr || process.stderr))
 
     this.times = new Map()
   }
@@ -311,5 +312,4 @@ function isKindOfAlphaNumeric (str) {
   return true
 }
 
-module.exports = new Console()
-module.exports.Console = Console
+module.exports = Console

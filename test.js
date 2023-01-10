@@ -1,8 +1,34 @@
 const test = require('brittle')
-const { Console: TinyConsole } = require('./index.js')
+const TinyConsole = require('./index.js')
 const path = require('path')
 const fs = require('fs')
 const os = require('os')
+
+test('colors option', async function (t) {
+  const tmpdir = createTmpDir(t)
+  const ws = fs.createWriteStream(path.join(tmpdir, 'stdout.log'))
+
+  t.ok((new TinyConsole()).colors)
+
+  t.ok((new TinyConsole({ colors: true })).colors)
+  t.absent((new TinyConsole({ colors: false })).colors)
+
+  t.ok((new TinyConsole({ stdout: process.stdout })).colors)
+  t.absent((new TinyConsole({ stdout: ws })).colors)
+
+  await new Promise(resolve => {
+    ws.end()
+
+    ws.once('error', done)
+    ws.once('close', done)
+
+    function done () {
+      ws.off('error', done)
+      ws.off('close', done)
+      resolve()
+    }
+  })
+})
 
 test('basic log', async function (t) {
   const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
