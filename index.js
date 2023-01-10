@@ -101,7 +101,7 @@ class Console {
             const name = isNumeric ? '' : (generateSingleKey(key) + ': ')
             paint.push('key', name, { id })
 
-            const single = generateSingleValue(v, { stringColor: true })
+            const single = generateSingleValue(v, { levels, stringColor: true })
             if (single !== null) {
               paint.push('value', single, { id })
             } else if (typeof v === 'object') {
@@ -131,7 +131,7 @@ class Console {
             const name = isArray ? '' : ('[' + symbol.toString() + ']: ')
             paint.push('key', name, { id })
 
-            const single = generateSingleValue(arg[symbol])
+            const single = generateSingleValue(arg[symbol], { levels })
             paint.push('value', single, { id })
           }
 
@@ -164,7 +164,7 @@ class Console {
       return crayon.green("'" + key + "'")
     }
 
-    function generateSingleValue (value, { stringColor = false } = {}) {
+    function generateSingleValue (value, { levels = 0, stringColor = false } = {}) {
       if (typeof value === 'undefined') return crayon.blackBright('undefined')
       if (value === null) return crayon.whiteBright(crayon.bold('null'))
 
@@ -191,20 +191,20 @@ class Console {
       if (value instanceof WeakMap) return 'WeakMap { <items unknown> }'
       if (value instanceof WeakSet) return 'WeakSet { <items unknown> }'
 
-      if (value instanceof Int8Array) return 'Int8Array(' + value.length + ') ' + outputArray(value)
-      if (value instanceof Int16Array) return 'Int16Array(' + value.length + ') ' + outputArray(value)
-      if (value instanceof Int32Array) return 'Int32Array(' + value.length + ') ' + outputArray(value)
+      if (value instanceof Int8Array) return 'Int8Array(' + value.length + ') ' + outputArray(value, { crayon, levels })
+      if (value instanceof Int16Array) return 'Int16Array(' + value.length + ') ' + outputArray(value, { crayon, levels })
+      if (value instanceof Int32Array) return 'Int32Array(' + value.length + ') ' + outputArray(value, { crayon, levels })
 
-      if (value instanceof Uint8Array) return 'Uint8Array(' + value.length + ') ' + outputArray(value)
-      if (value instanceof Uint16Array) return 'Uint16Array(' + value.length + ') ' + outputArray(value)
-      if (value instanceof Uint32Array) return 'Uint32Array(' + value.length + ') ' + outputArray(value)
+      if (value instanceof Uint8Array) return 'Uint8Array(' + value.length + ') ' + outputArray(value, { crayon, levels })
+      if (value instanceof Uint16Array) return 'Uint16Array(' + value.length + ') ' + outputArray(value, { crayon, levels })
+      if (value instanceof Uint32Array) return 'Uint32Array(' + value.length + ') ' + outputArray(value, { crayon, levels })
 
       return null
     }
   }
 }
 
-function outputArray (arr) {
+function outputArray (arr, { crayon, levels = 0 }) {
   if (arr.length === 0) return '[]'
 
   const max = arr.length > 64 ? 64 : arr.length // + Node is 100 + dynamic spacing depending on 16, 32, etc
@@ -214,21 +214,21 @@ function outputArray (arr) {
   let output = '['
 
   for (let i = 0; i < max; i++) {
-    if (first) output += addSpaces ? '\n  ' : ' '
-    else output += addSpaces ? ',' + (i % 16 === 0 ? '\n  ' : ' ') : ', '
+    if (first) output += addSpaces ? ('\n' + '  '.repeat(1 + levels)) : ' '
+    else output += addSpaces ? ',' + (i % 16 === 0 ? ('\n' + '  '.repeat(1 + levels)) : ' ') : ', '
     first = false
 
-    output += arr[i]
+    output += crayon.yellow(arr[i])
   }
 
   if (arr.length > 64) {
     const left = arr.length - 64
 
-    output += addSpaces ? ',\n  ' : ', '
+    output += addSpaces ? (',\n' + '  '.repeat(1 + levels)) : ', '
     output += '... ' + left + ' more item' + (left >= 2 ? 's' : '')
   }
 
-  if (!first) output += addSpaces ? '\n' : ' '
+  if (!first) output += addSpaces ? ('\n' + '  '.repeat(levels)) : ' '
 
   output += ']'
 
