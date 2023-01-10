@@ -49,19 +49,75 @@ class Console {
   // + clear () {}
 
   _print (stream, ...args) {
-    // + buffer output?
     const { crayon } = this
+    const prints = []
+    let width = { all: 0 }
+    let identifier = 0
+
+    const buffering = (type, chunk = null, opts = null) => {
+      // + decouple colors from chunk, otherwise width is wrong
+      // console.log('buffering', type, { id: opts ? opts.id : undefined })
+
+      if (typeof chunk === 'string') {
+        width.all += chunk.length
+
+        if (opts && opts.id !== undefined) {
+          if (!width[opts.id]) width[opts.id] = { self: 0, child: 0 }
+          width[opts.id].self += chunk.length
+        }
+      }
+
+      prints.push({ type, chunk, ...opts })
+    }
+
+    const compute = (prints, spacingDepth = 0) => {
+      let output = ''
+
+      for (const print of prints) {
+        // raw
+        if (['open', 'close', 'key', 'value', 'separator', 'space', 'break-line'].indexOf(print.type) > -1) {
+          output += print.chunk
+          continue
+        }
+
+        // dynamic
+        if (print.type === 'spacing-start' || print.type === 'spacing-sep' || print.type === 'spacing-end') {
+          const expand = (width[print.id] !== undefined ? width[print.id].self + width[print.id].child : width.all) > 60 // + 64?
+          // console.log(print, { expand }, width[print.id])
+
+          if (!expand/* || print.id >= spacingDepth */) {
+            output += ' '
+            continue
+          }
+
+          if (print.type === 'spacing-start') {
+            output += '\n' + '  '.repeat(print.levels2)
+            continue
+          } else if (print.type === 'spacing-sep') {
+            output += '\n' + '  '.repeat(print.levels2)
+            continue
+          } else if (print.type === 'spacing-end') {
+            output += '\n' + '  '.repeat(print.levels2 > 0 ? print.levels2 - 1 : 0)
+            continue
+          }
+        }
+
+        throw new Error('Invalid print: ' + JSON.stringify(print))
+      }
+
+      return output
+    }
 
     for (let i = 0; i < args.length; i++) {
       const arg = args[i]
 
       const single = generateSingleValue(arg)
       if (single !== null) {
-        stream.write(single)
+        buffering('value', single)
       } else if (typeof arg === 'object') {
         const depth = getObjectDepth(arg, 10)
-        const isDeep = depth >= 999 // + 3 // spacing temporarily disabled
         let levels = 0
+        let levels2 = 0
 
         iterateObject(arg)
 
@@ -69,23 +125,30 @@ class Console {
           if (add) backward.add(arg)
           else forward.add(arg)
 
-          const spacingStart = isDeep ? '\n' + '  '.repeat(levels + 1) : ''
-          const spacingEnd = isDeep ? '\n' + '  '.repeat(levels) : ''
+          const id = identifier++
           const isArray = Array.isArray(arg)
 
-          if (++levels >= 4 && !isObjectEmpty(arg)) {
+          levels2++
+
+          if (levels2 /*++levels*/ >= 4 && !isObjectEmpty(arg)) {
             let type = isArray ? 'Array' : (typeof arg)
             type = type[0].toUpperCase() + type.slice(1)
-            stream.write(crayon.cyan('[' + type + ']'))
-            return
+            buffering('value', crayon.cyan('[' + type + ']'), { id })
+            levels2--
+            return width[id]
           }
 
-          stream.write(isArray ? '[' : '{')
+          buffering('open', isArray ? '[' : '{', { id })
 
           let first = true
 
           for (const key in arg) {
-            stream.write((first ? '' : ',') + (isDeep ? spacingStart : ' '))
+            if (first) {
+              buffering('spacing-start', null, { id, levels2, depth })
+            } else {
+              buffering('separator', ',', { id })
+              buffering('spacing-sep', null, { id, levels2, depth })
+            }
             first = false
 
             const k = isArray ? parseInt(key, 10) : key
@@ -93,18 +156,20 @@ class Console {
             const v = arg[isNumeric ? k : key]
 
             const name = isNumeric ? '' : (generateSingleKey(key) + ': ')
-            stream.write(name)
+            buffering('key', name, { id })
 
             const single = generateSingleValue(v, { stringColor: true })
             if (single !== null) {
-              stream.write(single)
+              buffering('value', single, { id })
             } else if (typeof v === 'object') {
               if (backward.has(v) || (!add && forward.has(v))) {
-                stream.write(crayon.cyan('[Circular]'))
+                buffering('value', crayon.cyan('[Circular]'), { id })
                 continue
               }
 
-              iterateObject(v, backward, forward, false)
+              const subWidth = iterateObject(v, backward, forward, false)
+              width[id].child += subWidth.self + subWidth.child
+              // console.log({ subWidth, width: width[id] })
             } else {
               throw new Error('Argument not supported (' + (typeof v) + '): ' + v)
             }
@@ -113,30 +178,48 @@ class Console {
           const symbols = Object.getOwnPropertySymbols(arg)
 
           for (const symbol of symbols) {
-            stream.write((first ? '' : ',') + (isDeep ? spacingStart : ' '))
+            if (first) {
+              buffering('spacing-start', null, { id, levels2, depth })
+            } else {
+              buffering('separator', ',')
+              buffering('spacing-sep', null, { id, levels2, depth })
+            }
             first = false
 
             const name = isArray ? '' : ('[' + symbol.toString() + ']: ')
-            stream.write(name)
+            buffering('key', name, { id })
 
             const single = generateSingleValue(arg[symbol])
-            stream.write(single)
+            buffering('value', single, { id })
           }
 
-          if (!first) stream.write(isDeep ? spacingEnd : ' ')
-
-          stream.write(isArray ? ']' : '}')
+          if (!first) buffering('spacing-end', null, { id, levels2, depth })
+          buffering('close', isArray ? ']' : '}', { id })
 
           levels = 0
+          levels2--
+
+          return width[id]
         }
       } else {
         throw new Error('Argument not supported (' + (typeof arg) + '): ' + arg)
       }
 
-      if (i + 1 !== args.length) stream.write(' ')
+      if (i + 1 !== args.length) buffering('space', ' ')
     }
 
-    stream.write('\n')
+    buffering('break-line', '\n')
+
+    // + optimize!
+    /* let output = null
+    for (let i = 0; i < 4; i++) {
+      output = compute(prints, i)
+      const longestLine = output.split('\n').reduce((a, b) => a.length > b.length ? a : b)
+      if (longestLine.length < 60) break
+    }
+    stream.write(output) */
+    const output = compute(prints)
+    stream.write(output)
 
     function generateSingleKey (key) {
       if (key === '') return crayon.green("''")
