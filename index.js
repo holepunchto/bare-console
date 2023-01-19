@@ -301,6 +301,10 @@ function isObjectEmpty (obj) {
 function isKindOfAlphaNumeric (str) {
   for (let i = 0; i < str.length; i++) {
     const code = str.charCodeAt(i)
+
+    // first char, and numeric (0-9)
+    if (i === 0 && (code > 47 && code < 58)) return false
+
     if (!(code > 47 && code < 58) && // numeric (0-9)
         !(code > 64 && code < 91) && // upper alpha (A-Z)
         !(code > 96 && code < 123) && // lower alpha (a-z)
