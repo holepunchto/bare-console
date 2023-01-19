@@ -170,6 +170,7 @@ test('escape string', async function (t) {
     logger.log('how\'d"y') // eslint-disable-line no-new-wrappers
     logger.log('how\'d"y`') // eslint-disable-line no-new-wrappers
     logger.log("how'd\"y`") // eslint-disable-line no-new-wrappers
+    logger.log(`how'd"y`) // eslint-disable-line
 
     logger.log("he\u2028llo") // eslint-disable-line
     logger.log("he\u2029llo") // eslint-disable-line
