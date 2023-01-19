@@ -181,7 +181,7 @@ class Console {
 
       // + AggregateError?
       if (value instanceof Error) return value.stack // This includes EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError
-      if (value instanceof String) return "[String: " + dynamicQuotes(value.toString()) + "]"
+      if (value instanceof String) return '[String: ' + dynamicQuotes(value.toString()) + ']'
       if (value instanceof Number) return '[Number: ' + value.toString() + ']'
       if (value instanceof Boolean) return '[Boolean: ' + value.toString() + ']'
       if (value instanceof Date) return value.toISOString()
@@ -218,14 +218,14 @@ function dynamicQuotes (str, opts = {}) {
 function escapeString (str, singled = false) {
   str = str
     .replace(/[\\]/g, '\\\\')
-    .replace(/[\/]/g, '\\/')
+    .replace(/[/]/g, '\\/')
     .replace(/[\b]/g, '\\b')
     .replace(/[\f]/g, '\\f')
     .replace(/[\n]/g, '\\n')
     .replace(/[\r]/g, '\\r')
     .replace(/[\t]/g, '\\t')
 
-  if (singled) str = str.replace(/[\']/g, '\\\'')
+  if (singled) str = str.replace(/[']/g, '\\\'')
 
   return str
 }
