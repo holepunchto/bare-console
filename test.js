@@ -152,27 +152,27 @@ test('escape string', async function (t) {
     logger.log(new String('how\'d"y')) // eslint-disable-line no-new-wrappers
     logger.log(new String('how\'d"y`')) // eslint-disable-line no-new-wrappers
     logger.log(new String("how'd\"y`")) // eslint-disable-line no-new-wrappers
-    logger.log(new String(`how'd"y`)) // eslint-disable-line no-new-wrappers
+    logger.log(new String(`how'd"y`)) // eslint-disable-line
 
-    logger.log(new String("he\u2028llo")) // eslint-disable-line no-new-wrappers
-    logger.log(new String("he\u2029llo")) // eslint-disable-line no-new-wrappers
+    logger.log(new String("he\u2028llo")) // eslint-disable-line
+    logger.log(new String("he\u2029llo")) // eslint-disable-line
 
-    logger.log(('hello')) // eslint-disable-line no-new-wrappers
+    logger.log('hello') // eslint-disable-line no-new-wrappers
     logger.log([('hello')]) // eslint-disable-line no-new-wrappers
     logger.log({ str: ('hello') }) // eslint-disable-line no-new-wrappers
 
-    logger.log(('he\tl\nlo')) // eslint-disable-line no-new-wrappers
+    logger.log('he\tl\nlo') // eslint-disable-line no-new-wrappers
 
-    logger.log(("how'dy")) // eslint-disable-line no-new-wrappers
-    logger.log(("how\\'dy")) // eslint-disable-line no-new-wrappers
-    logger.log(('how"dy')) // eslint-disable-line no-new-wrappers
-    logger.log(('how`dy')) // eslint-disable-line no-new-wrappers
-    logger.log(('how\'d"y')) // eslint-disable-line no-new-wrappers
-    logger.log(('how\'d"y`')) // eslint-disable-line no-new-wrappers
-    logger.log(("how'd\"y`")) // eslint-disable-line no-new-wrappers
+    logger.log("how'dy") // eslint-disable-line no-new-wrappers
+    logger.log("how\\'dy") // eslint-disable-line no-new-wrappers
+    logger.log('how"dy') // eslint-disable-line no-new-wrappers
+    logger.log('how`dy') // eslint-disable-line no-new-wrappers
+    logger.log('how\'d"y') // eslint-disable-line no-new-wrappers
+    logger.log('how\'d"y`') // eslint-disable-line no-new-wrappers
+    logger.log("how'd\"y`") // eslint-disable-line no-new-wrappers
 
-    logger.log(("he\u2028llo")) // eslint-disable-line no-new-wrappers
-    logger.log(("he\u2029llo")) // eslint-disable-line no-new-wrappers
+    logger.log("he\u2028llo") // eslint-disable-line
+    logger.log("he\u2029llo") // eslint-disable-line
   }
 
   await closeAndCompare()
