@@ -158,8 +158,8 @@ test('escape string', async function (t) {
     logger.log(new String("he\u2029llo")) // eslint-disable-line
 
     logger.log('hello') // eslint-disable-line no-new-wrappers
-    logger.log([('hello')]) // eslint-disable-line no-new-wrappers
-    logger.log({ str: ('hello') }) // eslint-disable-line no-new-wrappers
+    logger.log(['hello']) // eslint-disable-line no-new-wrappers
+    logger.log({ str: 'hello' }) // eslint-disable-line no-new-wrappers
 
     logger.log('he\tl\nlo') // eslint-disable-line no-new-wrappers
 
