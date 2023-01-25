@@ -314,6 +314,7 @@ test('string keys', async function (t) {
     logger.log({ _property: true })
     logger.log({ ' property': true })
     logger.log({ '-property': true })
+    logger.log({ '0property': true })
   }
 
   await closeAndCompare()
