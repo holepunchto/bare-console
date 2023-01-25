@@ -192,6 +192,8 @@ class Console {
       if (value instanceof WeakMap) return 'WeakMap { <items unknown> }'
       if (value instanceof WeakSet) return 'WeakSet { <items unknown> }'
 
+      if (Buffer.isBuffer(value) && value.constructor.name === 'Buffer') return '<Buffer ' + outputArray(value, { crayon, levels, isBuffer: true }) + '>'
+
       if (value instanceof Int8Array) return 'Int8Array(' + value.length + ') ' + outputArray(value, { crayon, levels })
       if (value instanceof Int16Array) return 'Int16Array(' + value.length + ') ' + outputArray(value, { crayon, levels })
       if (value instanceof Int32Array) return 'Int32Array(' + value.length + ') ' + outputArray(value, { crayon, levels })
@@ -230,33 +232,36 @@ function escapeString (str, singled = false) {
   return str
 }
 
-function outputArray (arr, { crayon, levels = 0 }) {
-  if (arr.length === 0) return '[]'
+function outputArray (arr, { crayon, levels = 0, isBuffer = false }) {
+  if (arr.length === 0) return isBuffer ? '' : '[]'
 
-  const max = arr.length > 64 ? 64 : arr.length // + Node is 100 + dynamic spacing depending on 16, 32, etc
-  const addSpaces = arr.length > 16
+  const MAX = isBuffer ? 50 : 64
+  const max = arr.length > MAX ? MAX : arr.length // + Node is 100 + dynamic spacing depending on 16, 32, etc
+  const addSpaces = arr.length > (isBuffer ? Infinity : 16)
+  const space = isBuffer ? '' : ' '
+  const sep = isBuffer ? '' : ','
 
   let first = true
-  let output = '['
+  let output = isBuffer ? '' : '['
 
   for (let i = 0; i < max; i++) {
-    if (first) output += addSpaces ? ('\n' + '  '.repeat(1 + levels)) : ' '
-    else output += addSpaces ? ',' + (i % 16 === 0 ? ('\n' + '  '.repeat(1 + levels)) : ' ') : ', '
+    if (first) output += addSpaces ? ('\n' + '  '.repeat(1 + levels)) : space
+    else output += addSpaces ? ',' + (i % 16 === 0 ? ('\n' + '  '.repeat(1 + levels)) : ' ') : (sep + ' ')
     first = false
 
-    output += crayon.yellow(arr[i])
+    output += isBuffer ? arr[i].toString(16) : crayon.yellow(arr[i])
   }
 
-  if (arr.length > 64) {
-    const left = arr.length - 64
+  if (arr.length > MAX) {
+    const left = arr.length - MAX
 
-    output += addSpaces ? (',\n' + '  '.repeat(1 + levels)) : ', '
-    output += '... ' + left + ' more item' + (left >= 2 ? 's' : '')
+    output += addSpaces ? (',\n' + '  '.repeat(1 + levels)) : (sep + ' ')
+    output += '... ' + left + ' more ' + (isBuffer ? 'byte' : 'item') + (left >= 2 ? 's' : '')
   }
 
-  if (!first) output += addSpaces ? ('\n' + '  '.repeat(levels)) : ' '
+  if (!first) output += addSpaces ? ('\n' + '  '.repeat(levels)) : space
 
-  output += ']'
+  output += isBuffer ? '' : ']'
 
   return output
 }
