@@ -57,7 +57,7 @@ class Console {
     for (let i = 0; i < args.length; i++) {
       const arg = args[i]
 
-      const single = generateSingleValue(arg)
+      const single = generateSingleValue(arg, { escape: false })
       if (single !== null) {
         paint.push('value', single)
       } else if (typeof arg === 'object') {
@@ -165,11 +165,11 @@ class Console {
       return crayon.green("'" + key + "'")
     }
 
-    function generateSingleValue (value, { levels = 0, stringColor = false } = {}) {
+    function generateSingleValue (value, { levels = 0, stringColor = false, escape = true } = {}) {
       if (typeof value === 'undefined') return crayon.blackBright('undefined')
       if (value === null) return crayon.whiteBright(crayon.bold('null'))
 
-      if (typeof value === 'string') return stringColor ? crayon.green("'" + value + "'") : value // + dynamic quotes?
+      if (typeof value === 'string') return stringColor ? crayon.green(dynamicQuotes(value, { escape })) : dynamicQuotes(value, { escape })
       if (typeof value === 'number') return crayon.yellow(value)
       if (typeof value === 'boolean') return crayon.yellow(value)
       if (typeof value === 'function') return crayon.cyan(value.name ? '[Function: ' + value.name + ']' : '[Function (anonymous)]')
@@ -181,7 +181,7 @@ class Console {
 
       // + AggregateError?
       if (value instanceof Error) return value.stack // This includes EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError
-      if (value instanceof String) return "[String: '" + value.toString() + "']" // + dynamic quotes
+      if (value instanceof String) return '[String: ' + dynamicQuotes(value.toString()) + ']'
       if (value instanceof Number) return '[Number: ' + value.toString() + ']'
       if (value instanceof Boolean) return '[Boolean: ' + value.toString() + ']'
       if (value instanceof Date) return value.toISOString()
@@ -203,6 +203,31 @@ class Console {
       return null
     }
   }
+}
+
+function dynamicQuotes (str, opts = {}) {
+  if (opts.escape === false) return str
+
+  if (str.indexOf("'") === -1) return "'" + escapeString(str) + "'"
+  if (str.indexOf('"') === -1) return '"' + escapeString(str) + '"'
+  if (str.indexOf('`') === -1) return '`' + escapeString(str) + '`'
+
+  return "'" + escapeString(str, true) + "'"
+}
+
+function escapeString (str, singled = false) {
+  str = str
+    .replace(/[\\]/g, '\\\\')
+    .replace(/[/]/g, '\\/')
+    .replace(/[\b]/g, '\\b')
+    .replace(/[\f]/g, '\\f')
+    .replace(/[\n]/g, '\\n')
+    .replace(/[\r]/g, '\\r')
+    .replace(/[\t]/g, '\\t')
+
+  if (singled) str = str.replace(/[']/g, '\\\'')
+
+  return str
 }
 
 function outputArray (arr, { crayon, levels = 0 }) {

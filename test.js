@@ -106,9 +106,6 @@ test('native objects', async function (t) {
 
   function both (logger) {
     logger.log(new String('hello')) // eslint-disable-line no-new-wrappers
-    // logger.log(new String("how'dy")) // + this three requires dynamic quotes
-    // logger.log(new String('how\'d"y'))
-    // logger.log(new String('how\'d"y\`'))
     logger.log(new Number(123)) // eslint-disable-line no-new-wrappers
     logger.log(new Boolean(false)) // eslint-disable-line no-new-wrappers
     logger.log(new Boolean(true)) // eslint-disable-line no-new-wrappers
@@ -133,6 +130,53 @@ test('native classes', async function (t) {
     logger.log(Function)
     logger.log(Symbol)
     logger.log(Map)
+  }
+
+  await closeAndCompare()
+})
+
+test('escape string', async function (t) {
+  const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+  both(nodeConsole)
+  both(tinyConsole)
+
+  function both (logger) {
+    logger.log(new String('hello')) // eslint-disable-line no-new-wrappers
+    logger.log([new String('hello')]) // eslint-disable-line no-new-wrappers
+    logger.log({ str: new String('hello') }) // eslint-disable-line no-new-wrappers
+
+    logger.log(new String('he\tl\nlo')) // eslint-disable-line no-new-wrappers
+
+    logger.log(new String("how'dy")) // eslint-disable-line no-new-wrappers
+    logger.log(new String("how\\'dy")) // eslint-disable-line no-new-wrappers
+    logger.log(new String('how"dy')) // eslint-disable-line no-new-wrappers
+    logger.log(new String('how`dy')) // eslint-disable-line no-new-wrappers
+    logger.log(new String('how\'d"y')) // eslint-disable-line no-new-wrappers
+    logger.log(new String('how\'d"y`')) // eslint-disable-line no-new-wrappers
+    logger.log(new String("how'd\"y`")) // eslint-disable-line no-new-wrappers
+    logger.log(new String(`how'd"y`)) // eslint-disable-line
+
+    logger.log(new String('he\u2028llo')) // eslint-disable-line no-new-wrappers
+    logger.log(new String('he\u2029llo')) // eslint-disable-line no-new-wrappers
+
+    logger.log('hello')
+    logger.log(['hello'])
+    logger.log({ str: 'hello' })
+
+    logger.log('he\tl\nlo')
+
+    logger.log("how'dy")
+    logger.log("how\\'dy")
+    logger.log('how"dy')
+    logger.log('how`dy')
+    logger.log('how\'d"y')
+    logger.log('how\'d"y`')
+    logger.log("how'd\"y`")
+    logger.log(`how'd"y`) // eslint-disable-line
+
+    logger.log('he\u2028llo')
+    logger.log('he\u2029llo')
   }
 
   await closeAndCompare()
