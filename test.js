@@ -454,8 +454,8 @@ test.skip('native WeakMap', async function (t) {
   await closeAndCompare()
 })
 
-test.skip('native Int8Array, Int16Array, and Int32Array', async function (t) {
-  for (const length of [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]) {
+test('native Int8Array, Int16Array, and Int32Array', async function (t) {
+  for (const length of [0, 1, 2, 4]) { // + 8, 16, 32, 64, 128, 256, 512, 1024
     t.test('length ' + length, async function (t) {
       const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
@@ -474,8 +474,8 @@ test.skip('native Int8Array, Int16Array, and Int32Array', async function (t) {
   }
 })
 
-test.skip('native Uint8Array, Uint16Array, and Uint32Array', async function (t) {
-  for (const length of [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]) {
+test('native Uint8Array, Uint16Array, and Uint32Array', async function (t) {
+  for (const length of [0, 1, 2, 4]) { // + 8, 16, 32, 64, 128, 256, 512, 1024
     t.test('length ' + length, async function (t) {
       const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
@@ -487,6 +487,24 @@ test.skip('native Uint8Array, Uint16Array, and Uint32Array', async function (t) 
         logger.log(new Uint8Array(arr))
         logger.log(new Uint16Array(arr))
         logger.log(new Uint32Array(arr))
+      }
+
+      await closeAndCompare()
+    })
+  }
+})
+
+test('native Buffer', async function (t) {
+  for (const length of [0, 2, 4, 8, 16, 32, 50, 51, 64, 128, 256, 512, 1024]) {
+    t.test('length ' + length, async function (t) {
+      const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+      both(nodeConsole)
+      both(tinyConsole)
+
+      function both (logger) {
+        const arr = new Array(length).fill(60)
+        logger.log(Buffer.from(arr))
       }
 
       await closeAndCompare()
