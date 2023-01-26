@@ -457,7 +457,7 @@ test('native WeakMap', async function (t) {
 })
 
 test('native Array', async function (t) {
-  for (const length of [0, 1, 2, 4, 128, 256, 512, 1024]) { // + 8, 16, 32, 64
+  for (const length of [0, 1, 2, 4, 100, 101, 102, 128, 256, 512, 1024]) { // + 8, 16, 32, 64
     t.test('length ' + length, async function (t) {
       const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
@@ -515,7 +515,7 @@ test('native Uint8Array, Uint16Array, and Uint32Array', async function (t) {
 })
 
 test('native Buffer', async function (t) {
-  for (const length of [0, 1, 2, 4, 8, 16, 32, 50, 51, 64, 128, 256, 512, 1024]) {
+  for (const length of [0, 1, 2, 4, 8, 16, 32, 50, 51, 52, 64, 128, 256, 512, 1024]) {
     t.test('length ' + length, async function (t) {
       const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
