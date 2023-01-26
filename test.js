@@ -563,6 +563,7 @@ test.skip('buffer with circular reference', async function (t) {
 
   await closeAndCompare()
 })
+
 test('array but has a key value', async function (t) {
   const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
