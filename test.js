@@ -411,7 +411,7 @@ test.skip('native Set', async function (t) {
   await closeAndCompare()
 })
 
-test.skip('native WeakMap', async function (t) {
+test('native WeakMap', async function (t) {
   const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
   both(nodeConsole)
@@ -437,7 +437,7 @@ test.skip('native WeakMap', async function (t) {
   await closeAndCompare()
 })
 
-test.skip('native WeakMap', async function (t) {
+test('native WeakMap', async function (t) {
   const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
   both(nodeConsole)
@@ -515,7 +515,7 @@ test('native Uint8Array, Uint16Array, and Uint32Array', async function (t) {
 })
 
 test('native Buffer', async function (t) {
-  for (const length of [0, 2, 4, 8, 16, 32, 50, 51, 64, 128, 256, 512, 1024]) {
+  for (const length of [0, 1, 2, 4, 8, 16, 32, 50, 51, 64, 128, 256, 512, 1024]) {
     t.test('length ' + length, async function (t) {
       const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
