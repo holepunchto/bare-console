@@ -4,6 +4,8 @@ const path = require('path')
 const fs = require('fs')
 const os = require('os')
 
+test.configure({ source: false })
+
 test('colors option', async function (t) {
   const tmpdir = createTmpDir(t)
   const ws = fs.createWriteStream(path.join(tmpdir, 'stdout.log'))
@@ -409,7 +411,7 @@ test.skip('native Set', async function (t) {
   await closeAndCompare()
 })
 
-test.skip('native WeakMap', async function (t) {
+test('native WeakMap', async function (t) {
   const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
   both(nodeConsole)
@@ -435,7 +437,7 @@ test.skip('native WeakMap', async function (t) {
   await closeAndCompare()
 })
 
-test.skip('native WeakMap', async function (t) {
+test('native WeakMap', async function (t) {
   const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
   both(nodeConsole)
@@ -454,8 +456,26 @@ test.skip('native WeakMap', async function (t) {
   await closeAndCompare()
 })
 
+test('native Array', async function (t) {
+  for (const length of [0, 1, 2, 4, 100, 101, 102, 128, 256, 512, 1024]) { // + 8, 16, 32, 64
+    t.test('length ' + length, async function (t) {
+      const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+      both(nodeConsole)
+      both(tinyConsole)
+
+      function both (logger) {
+        const arr = new Array(length).fill(1)
+        logger.log(arr)
+      }
+
+      await closeAndCompare()
+    })
+  }
+})
+
 test('native Int8Array, Int16Array, and Int32Array', async function (t) {
-  for (const length of [0, 1, 2, 4]) { // + 8, 16, 32, 64, 128, 256, 512, 1024
+  for (const length of [0, 1, 2, 4, 128, 256, 512, 1024]) { // + 8, 16, 32, 64
     t.test('length ' + length, async function (t) {
       const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
@@ -475,7 +495,7 @@ test('native Int8Array, Int16Array, and Int32Array', async function (t) {
 })
 
 test('native Uint8Array, Uint16Array, and Uint32Array', async function (t) {
-  for (const length of [0, 1, 2, 4]) { // + 8, 16, 32, 64, 128, 256, 512, 1024
+  for (const length of [0, 1, 2, 4, 128, 256, 512, 1024]) { // + 8, 16, 32, 64
     t.test('length ' + length, async function (t) {
       const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
@@ -495,7 +515,7 @@ test('native Uint8Array, Uint16Array, and Uint32Array', async function (t) {
 })
 
 test('native Buffer', async function (t) {
-  for (const length of [0, 2, 4, 8, 16, 32, 50, 51, 64, 128, 256, 512, 1024]) {
+  for (const length of [0, 1, 2, 4, 8, 16, 32, 50, 51, 52, 64, 128, 256, 512, 1024]) {
     t.test('length ' + length, async function (t) {
       const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
