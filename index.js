@@ -186,7 +186,7 @@ class Console {
       if (value === null) return crayon.whiteBright(crayon.bold('null'))
 
       if (typeof value === 'string') return stringColor ? crayon.green(dynamicQuotes(value, { escape })) : dynamicQuotes(value, { escape })
-      if (typeof value === 'number') return intToHex ? value.toString(16) : crayon.yellow(value)
+      if (typeof value === 'number') return intToHex ? numberToHex(value) : crayon.yellow(value)
       if (typeof value === 'boolean') return crayon.yellow(value)
       if (typeof value === 'function') return crayon.cyan(value.name ? '[Function: ' + value.name + ']' : '[Function (anonymous)]')
       if (typeof value === 'symbol') return crayon.green(value.toString())
@@ -211,6 +211,10 @@ class Console {
       return null
     }
   }
+}
+
+function numberToHex (value) {
+  return value.toString(16).padStart(2, '0')
 }
 
 function isIntArray (value) {
