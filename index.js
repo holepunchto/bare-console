@@ -71,6 +71,10 @@ class Console {
 
           const id = identifier++
           const isArray = Array.isArray(arg)
+          const isBuffer = Buffer.isBuffer(arg) && arg.constructor.name === 'Buffer'
+          const isInts = !isBuffer && isIntArray(arg)
+          const isObject = !(isArray || isInts || isBuffer)
+          const brackets = isBuffer ? '<>' : (isInts || isArray ? '[]' : '{}')
 
           levels++
 
@@ -82,27 +86,33 @@ class Console {
             return paint.width[id]
           }
 
-          paint.push('open', isArray ? '[' : '{', { id })
+          if (isInts) paint.push('open', arg.constructor.name + '(' + arg.length + ') ', { id })
+          paint.push('open', brackets[0], { id })
+          if (isBuffer) paint.push('open', 'Buffer', { id })
 
-          let first = true
+          const MAX = isObject ? Infinity : (isBuffer ? 50 : 100)
+          let count = 0
 
           for (const key in arg) {
-            if (first) {
-              paint.push('spacing-start', null, { id, levels })
-            } else {
-              paint.push('separator', ',', { id })
-              paint.push('spacing-sep', null, { id, levels })
-            }
-            first = false
-
-            const k = isArray ? parseInt(key, 10) : key
-            const isNumeric = isArray && isFinite(k)
+            const k = isObject ? key : parseInt(key, 10)
+            const isNumeric = !isObject && isFinite(k)
             const v = arg[isNumeric ? k : key]
+
+            if (isBuffer && !isNumeric) continue
+
+            if (count++ >= MAX) break
+
+            if (count === 1) {
+              paint.push('spacing-start', null, { id, levels, isArray, isInts, isBuffer, arg, k })
+            } else {
+              paint.push('separator', isBuffer ? '' : ',', { id })
+              paint.push('spacing-sep', null, { id, levels, isArray, isInts, isBuffer, arg, k })
+            }
 
             const name = isNumeric ? '' : (generateSingleKey(key) + ': ')
             paint.push('key', name, { id })
 
-            const single = generateSingleValue(v, { levels, stringColor: true })
+            const single = generateSingleValue(v, { levels, stringColor: true, intToHex: isBuffer })
             if (single !== null) {
               paint.push('value', single, { id })
             } else if (typeof v === 'object') {
@@ -121,13 +131,14 @@ class Console {
           const symbols = Object.getOwnPropertySymbols(arg)
 
           for (const symbol of symbols) {
-            if (first) {
+            count++
+
+            if (count === 1) {
               paint.push('spacing-start', null, { id, levels })
             } else {
               paint.push('separator', ',')
               paint.push('spacing-sep', null, { id, levels })
             }
-            first = false
 
             const name = isArray ? '' : ('[' + symbol.toString() + ']: ')
             paint.push('key', name, { id })
@@ -136,8 +147,13 @@ class Console {
             paint.push('value', single, { id })
           }
 
-          if (!first) paint.push('spacing-end', null, { id, levels })
-          paint.push('close', isArray ? ']' : '}', { id })
+          if (!isObject && arg.length > MAX) paint.push('more', null, { id, levels, isArray, isInts, isBuffer, arg, left: (arg.length - MAX) })
+
+          if (count > 0) paint.push('spacing-end', null, { id, levels, isArray, isInts, isBuffer, arg })
+
+          if (count === 0 && isBuffer) paint.push('spacing-sep', null, { id, levels, isArray, isInts, isBuffer, arg })
+
+          paint.push('close', brackets[1], { id })
 
           levels--
 
@@ -165,12 +181,12 @@ class Console {
       return crayon.green("'" + key + "'")
     }
 
-    function generateSingleValue (value, { levels = 0, stringColor = false, escape = true } = {}) {
+    function generateSingleValue (value, { levels = 0, stringColor = false, escape = true, intToHex = false } = {}) {
       if (typeof value === 'undefined') return crayon.blackBright('undefined')
       if (value === null) return crayon.whiteBright(crayon.bold('null'))
 
       if (typeof value === 'string') return stringColor ? crayon.green(dynamicQuotes(value, { escape })) : dynamicQuotes(value, { escape })
-      if (typeof value === 'number') return crayon.yellow(value)
+      if (typeof value === 'number') return intToHex ? value.toString(16) : crayon.yellow(value)
       if (typeof value === 'boolean') return crayon.yellow(value)
       if (typeof value === 'function') return crayon.cyan(value.name ? '[Function: ' + value.name + ']' : '[Function (anonymous)]')
       if (typeof value === 'symbol') return crayon.green(value.toString())
@@ -192,19 +208,15 @@ class Console {
       if (value instanceof WeakMap) return 'WeakMap { <items unknown> }'
       if (value instanceof WeakSet) return 'WeakSet { <items unknown> }'
 
-      if (Buffer.isBuffer(value) && value.constructor.name === 'Buffer') return '<Buffer ' + outputArray(value, { crayon, levels, isBuffer: true }) + '>'
-
-      if (value instanceof Int8Array) return 'Int8Array(' + value.length + ') ' + outputArray(value, { crayon, levels })
-      if (value instanceof Int16Array) return 'Int16Array(' + value.length + ') ' + outputArray(value, { crayon, levels })
-      if (value instanceof Int32Array) return 'Int32Array(' + value.length + ') ' + outputArray(value, { crayon, levels })
-
-      if (value instanceof Uint8Array) return 'Uint8Array(' + value.length + ') ' + outputArray(value, { crayon, levels })
-      if (value instanceof Uint16Array) return 'Uint16Array(' + value.length + ') ' + outputArray(value, { crayon, levels })
-      if (value instanceof Uint32Array) return 'Uint32Array(' + value.length + ') ' + outputArray(value, { crayon, levels })
-
       return null
     }
   }
+}
+
+function isIntArray (value) {
+  if (value instanceof Uint8Array || value instanceof Uint16Array || value instanceof Uint32Array) return true
+  if (value instanceof Int8Array || value instanceof Int16Array || value instanceof Int32Array) return true
+  return false
 }
 
 function dynamicQuotes (str, opts = {}) {
@@ -230,40 +242,6 @@ function escapeString (str, singled = false) {
   if (singled) str = str.replace(/[']/g, '\\\'')
 
   return str
-}
-
-function outputArray (arr, { crayon, levels = 0, isBuffer = false }) {
-  if (arr.length === 0) return isBuffer ? '' : '[]'
-
-  const MAX = isBuffer ? 50 : 64
-  const max = arr.length > MAX ? MAX : arr.length // + Node is 100 + dynamic spacing depending on 16, 32, etc
-  const addSpaces = arr.length > (isBuffer ? Infinity : 16)
-  const space = isBuffer ? '' : ' '
-  const sep = isBuffer ? '' : ','
-
-  let first = true
-  let output = isBuffer ? '' : '['
-
-  for (let i = 0; i < max; i++) {
-    if (first) output += addSpaces ? ('\n' + '  '.repeat(1 + levels)) : space
-    else output += addSpaces ? ',' + (i % 16 === 0 ? ('\n' + '  '.repeat(1 + levels)) : ' ') : (sep + ' ')
-    first = false
-
-    output += isBuffer ? arr[i].toString(16) : crayon.yellow(arr[i])
-  }
-
-  if (arr.length > MAX) {
-    const left = arr.length - MAX
-
-    output += addSpaces ? (',\n' + '  '.repeat(1 + levels)) : (sep + ' ')
-    output += '... ' + left + ' more ' + (isBuffer ? 'byte' : 'item') + (left >= 2 ? 's' : '')
-  }
-
-  if (!first) output += addSpaces ? ('\n' + '  '.repeat(levels)) : space
-
-  output += isBuffer ? '' : ']'
-
-  return output
 }
 
 function adaptStream (stream) {
@@ -305,13 +283,37 @@ class Paint {
 
       // dynamic
       if (print.type === 'spacing-start' || print.type === 'spacing-sep' || print.type === 'spacing-end') {
+        const type = print.type.replace('spacing-', '')
         const totalWidth = this.width[print.id] ? (this.width[print.id].self + this.width[print.id].child) : this.width.all
-        const expand = totalWidth > 60 // + 64? double check after colors fix
+        const expand = print.isInts || print.isArray || totalWidth > 60 // + 64? double check after colors fix
+
+        if (print.isBuffer) {
+          if (type === 'start' || type === 'sep') output += ' '
+          continue
+        }
+
+        if (print.isInts || print.isArray) {
+          const addSpaces = print.arg.length > 12
+          const skipSpaces = type === 'sep' && !(print.k % 12 === 0)
+
+          if (!addSpaces || skipSpaces) {
+            output += ' '
+            continue
+          }
+        }
 
         if (!expand) output += ' '
-        else if (print.type === 'spacing-start') output += '\n' + '  '.repeat(print.levels)
-        else if (print.type === 'spacing-sep') output += '\n' + '  '.repeat(print.levels)
-        else if (print.type === 'spacing-end') output += '\n' + '  '.repeat(print.levels - 1)
+        else output += '\n' + '  '.repeat(print.levels - (type === 'end' ? 1 : 0))
+
+        continue
+      }
+
+      if (print.type === 'more') {
+        const addSpaces = print.arg.length > (print.isBuffer ? Infinity : 12)
+        const sep = print.isBuffer ? '' : ','
+
+        output += addSpaces ? (',\n' + '  '.repeat(print.levels)) : (sep + ' ')
+        output += '... ' + print.left + ' more ' + (print.isBuffer ? 'byte' : 'item') + (print.left >= 2 ? 's' : '')
 
         continue
       }
