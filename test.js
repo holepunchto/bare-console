@@ -532,6 +532,37 @@ test('native Buffer', async function (t) {
   }
 })
 
+test('buffer with custom property', async function (t) {
+  const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+  both(nodeConsole)
+  both(tinyConsole)
+
+  function both (logger) {
+    const arr = new Array(4).fill(1)
+    const buf = Buffer.from(arr)
+    buf.myCustomProperty = true
+    logger.log(buf)
+  }
+
+  await closeAndCompare()
+})
+
+// Skipped because Node fails this case
+test.skip('buffer with circular reference', async function (t) {
+  const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+  both(nodeConsole)
+  both(tinyConsole)
+
+  function both (logger) {
+    const buf = Buffer.from([1, 2, 3])
+    buf.ref = buf
+    logger.log(buf)
+  }
+
+  await closeAndCompare()
+})
 test('array but has a key value', async function (t) {
   const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 

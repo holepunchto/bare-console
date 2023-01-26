@@ -98,14 +98,14 @@ class Console {
             const isNumeric = !isObject && isFinite(k)
             const v = arg[isNumeric ? k : key]
 
-            if (isBuffer && !isNumeric) continue
+            if (isBuffer && !isNumeric && Object.hasOwn(Object.getPrototypeOf(arg), key)) continue
 
             if (count++ >= MAX) break
 
             if (count === 1) {
               paint.push('spacing-start', null, { id, levels, isArray, isInts, isBuffer, arg, k })
             } else {
-              paint.push('separator', isBuffer ? '' : ',', { id })
+              paint.push('separator', isBuffer && isNumeric ? '' : ',', { id })
               paint.push('spacing-sep', null, { id, levels, isArray, isInts, isBuffer, arg, k })
             }
 
