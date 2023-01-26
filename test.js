@@ -539,8 +539,7 @@ test('buffer with custom property', async function (t) {
   both(tinyConsole)
 
   function both (logger) {
-    const arr = new Array(4).fill(1)
-    const buf = Buffer.from(arr)
+    const buf = Buffer.from([0, 1, 60])
     buf.myCustomProperty = true
     logger.log(buf)
   }
