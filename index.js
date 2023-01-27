@@ -290,6 +290,19 @@ class Paint {
         const type = print.type.replace('spacing-', '')
         const totalWidth = this.width[print.id] ? (this.width[print.id].self + this.width[print.id].child) : this.width.all
         const expand = print.isInts || print.isArray || totalWidth > 60 // + 64? double check after colors fix
+        let arrayBreakpoint = 0
+
+        if (print.isInts || print.isArray) {
+          const lengths = [7, 9, 13, 17, 23, 29, 37, 45, 53]
+          const splits = [4, 5, 6, 7, 8, 9, 10, 11, 12]
+
+          for (let i = lengths.length - 1; i >= 0; i--) {
+            if (print.arg.length >= lengths[i]) {
+              arrayBreakpoint = splits[i]
+              break
+            }
+          }
+        }
 
         if (print.isBuffer) {
           if (type === 'start' || type === 'sep') output += ' '
@@ -297,10 +310,10 @@ class Paint {
         }
 
         if (print.isInts || print.isArray) {
-          const addSpaces = print.arg.length > 12
-          const skipSpaces = type === 'sep' && !(print.k % 12 === 0)
+          const addSpacing = arrayBreakpoint !== 0
+          const skipSpacing = type === 'sep' && !(print.k % arrayBreakpoint === 0)
 
-          if (!addSpaces || skipSpaces) {
+          if (!addSpacing || skipSpacing) {
             output += ' '
             continue
           }
@@ -313,10 +326,10 @@ class Paint {
       }
 
       if (print.type === 'more') {
-        const addSpaces = print.arg.length > (print.isBuffer ? Infinity : 12)
+        const addSpacing = !print.isBuffer
         const sep = print.isBuffer ? '' : ','
 
-        output += addSpaces ? (',\n' + '  '.repeat(print.levels)) : (sep + ' ')
+        output += addSpacing ? (',\n' + '  '.repeat(print.levels)) : (sep + ' ')
         output += '... ' + print.left + ' more ' + (print.isBuffer ? 'byte' : 'item') + (print.left >= 2 ? 's' : '')
 
         continue

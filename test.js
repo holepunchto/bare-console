@@ -457,7 +457,7 @@ test('native WeakMap', async function (t) {
 })
 
 test('native Array', async function (t) {
-  for (const length of [0, 1, 2, 4, 100, 101, 102, 128, 256, 512, 1024]) { // + 8, 16, 32, 64
+  for (const length of [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]) {
     t.test('length ' + length, async function (t) {
       const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
@@ -472,10 +472,27 @@ test('native Array', async function (t) {
       await closeAndCompare()
     })
   }
+
+  for (const length of [7, 9, 13, 17, 23, 29, 37, 45, 53]) { // Breakpoints
+    t.test('length ' + length, async function (t) {
+      const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+      both(nodeConsole)
+      both(tinyConsole)
+
+      function both (logger) {
+        logger.log(new Array(length - 1).fill(1))
+        logger.log(new Array(length).fill(1))
+        logger.log(new Array(length + 1).fill(1))
+      }
+
+      await closeAndCompare()
+    })
+  }
 })
 
 test('native Int8Array, Int16Array, and Int32Array', async function (t) {
-  for (const length of [0, 1, 2, 4, 128, 256, 512, 1024]) { // + 8, 16, 32, 64
+  for (const length of [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]) {
     t.test('length ' + length, async function (t) {
       const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
@@ -492,10 +509,35 @@ test('native Int8Array, Int16Array, and Int32Array', async function (t) {
       await closeAndCompare()
     })
   }
+
+  for (const length of [7, 9, 13, 17, 23, 29, 37, 45, 53]) { // Breakpoints
+    t.test('length ' + length, async function (t) {
+      const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+      both(nodeConsole)
+      both(tinyConsole)
+
+      function both (logger) {
+        logger.log(new Int8Array(length - 1).fill(1))
+        logger.log(new Int16Array(length - 1).fill(1))
+        logger.log(new Int32Array(length - 1).fill(1))
+
+        logger.log(new Int8Array(length).fill(1))
+        logger.log(new Int16Array(length).fill(1))
+        logger.log(new Int32Array(length).fill(1))
+
+        logger.log(new Int8Array(length + 1).fill(1))
+        logger.log(new Int16Array(length + 1).fill(1))
+        logger.log(new Int32Array(length + 1).fill(1))
+      }
+
+      await closeAndCompare()
+    })
+  }
 })
 
 test('native Uint8Array, Uint16Array, and Uint32Array', async function (t) {
-  for (const length of [0, 1, 2, 4, 128, 256, 512, 1024]) { // + 8, 16, 32, 64
+  for (const length of [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]) {
     t.test('length ' + length, async function (t) {
       const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
@@ -512,10 +554,35 @@ test('native Uint8Array, Uint16Array, and Uint32Array', async function (t) {
       await closeAndCompare()
     })
   }
+
+  for (const length of [7, 9, 13, 17, 23, 29, 37, 45, 53]) { // Breakpoints
+    t.test('length ' + length, async function (t) {
+      const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+      both(nodeConsole)
+      both(tinyConsole)
+
+      function both (logger) {
+        logger.log(new Uint8Array(length - 1).fill(1))
+        logger.log(new Uint16Array(length - 1).fill(1))
+        logger.log(new Uint32Array(length - 1).fill(1))
+
+        logger.log(new Uint8Array(length).fill(1))
+        logger.log(new Uint16Array(length).fill(1))
+        logger.log(new Uint32Array(length).fill(1))
+
+        logger.log(new Uint8Array(length + 1).fill(1))
+        logger.log(new Uint16Array(length + 1).fill(1))
+        logger.log(new Uint32Array(length + 1).fill(1))
+      }
+
+      await closeAndCompare()
+    })
+  }
 })
 
 test('native Buffer', async function (t) {
-  for (const length of [0, 1, 2, 4, 8, 16, 32, 50, 51, 52, 64, 128, 256, 512, 1024]) {
+  for (const length of [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]) {
     t.test('length ' + length, async function (t) {
       const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
@@ -525,6 +592,23 @@ test('native Buffer', async function (t) {
       function both (logger) {
         const arr = new Array(length).fill(60)
         logger.log(Buffer.from(arr))
+      }
+
+      await closeAndCompare()
+    })
+  }
+
+  for (const length of [51]) { // Breakpoints
+    t.test('length ' + length, async function (t) {
+      const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+      both(nodeConsole)
+      both(tinyConsole)
+
+      function both (logger) {
+        logger.log(Buffer.alloc(length - 1))
+        logger.log(Buffer.alloc(length))
+        logger.log(Buffer.alloc(length + 1))
       }
 
       await closeAndCompare()
