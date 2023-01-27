@@ -473,7 +473,7 @@ test('native Array', async function (t) {
     })
   }
 
-  for (const length of [7, 9, 13, 17, 23, 29, 37, 45, 53]) { // Breakpoints
+  for (const length of [7, 9, 13, 17, 23, 29, 37, 45, 53]) {
     t.test('breakpoint length ' + length, async function (t) {
       const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
@@ -527,7 +527,7 @@ test('native Int8Array, Int16Array, and Int32Array', async function (t) {
     })
   }
 
-  for (const length of [7, 9, 13, 17, 23, 29, 37, 45, 53]) { // Breakpoints
+  for (const length of [7, 9, 13, 17, 23, 29, 37, 45, 53]) {
     t.test('breakpoint length ' + length, async function (t) {
       const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
@@ -597,7 +597,7 @@ test('native Uint8Array, Uint16Array, and Uint32Array', async function (t) {
     })
   }
 
-  for (const length of [7, 9, 13, 17, 23, 29, 37, 45, 53]) { // Breakpoints
+  for (const length of [7, 9, 13, 17, 23, 29, 37, 45, 53]) {
     t.test('breakpoint length ' + length, async function (t) {
       const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
