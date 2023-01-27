@@ -457,6 +457,7 @@ test('native WeakMap', async function (t) {
 })
 
 test('native Array', async function (t) {
+test.solo('native Array', async function (t) {
   for (const length of [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]) {
     t.test('length ' + length, async function (t) {
       const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
@@ -474,6 +475,23 @@ test('native Array', async function (t) {
   }
 
   for (const length of [7, 9, 13, 17, 23, 29, 37, 45, 53]) { // Breakpoints
+    t.test('length ' + length, async function (t) {
+      const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+
+      both(nodeConsole)
+      both(tinyConsole)
+
+      function both (logger) {
+        logger.log(new Array(length - 1).fill(1))
+        logger.log(new Array(length).fill(1))
+        logger.log(new Array(length + 1).fill(1))
+      }
+
+      await closeAndCompare()
+    })
+  }
+
+  for (const length of [101]) { // Breakpoint for "n more item/s"
     t.test('length ' + length, async function (t) {
       const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
@@ -598,7 +616,7 @@ test('native Buffer', async function (t) {
     })
   }
 
-  for (const length of [51]) { // Breakpoints
+  for (const length of [51]) { // Breakpoint for "n more byte/s"
     t.test('length ' + length, async function (t) {
       const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
 
