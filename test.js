@@ -457,7 +457,6 @@ test('native WeakMap', async function (t) {
 })
 
 test('native Array', async function (t) {
-test.solo('native Array', async function (t) {
   for (const length of [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]) {
     t.test('length ' + length, async function (t) {
       const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
