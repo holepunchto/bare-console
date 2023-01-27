@@ -294,11 +294,10 @@ class Paint {
 
         if (print.isInts || print.isArray) {
           const lengths = [7, 9, 13, 17, 23, 29, 37, 45, 53]
-          const splits = [4, 5, 6, 7, 8, 9, 10, 11, 12]
 
           for (let i = lengths.length - 1; i >= 0; i--) {
             if (print.arg.length >= lengths[i]) {
-              arrayBreakpoint = splits[i]
+              arrayBreakpoint = 4 + i // Range: 4-12
               break
             }
           }
