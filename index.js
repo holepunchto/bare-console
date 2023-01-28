@@ -50,8 +50,7 @@ class Console {
   // + clear () {}
 
   _print (stream, ...args) {
-    const { crayon } = this
-    const paint = new Paint()
+    const paint = new Paint(this.crayon)
     let identifier = 0
 
     for (let i = 0; i < args.length; i++) {
@@ -59,7 +58,7 @@ class Console {
 
       const single = generateSingleValue(arg, { escape: false })
       if (single !== null) {
-        paint.push('value', single)
+        paint.push('value', single.out, { crayon: single.crayon })
       } else if (typeof arg === 'object') {
         let levels = 0
 
@@ -81,7 +80,7 @@ class Console {
           if (levels >= 4 && !isObjectEmpty(arg)) {
             let type = isArray ? 'Array' : (typeof arg)
             type = type[0].toUpperCase() + type.slice(1)
-            paint.push('value', crayon.cyan('[' + type + ']'), { id })
+            paint.push('value', '[' + type + ']', { id, crayon: 'cyan' })
             levels--
             return paint.width[id]
           }
@@ -109,15 +108,18 @@ class Console {
               paint.push('spacing-sep', null, { id, levels, isArray, isInts, isBuffer, arg, k })
             }
 
-            const name = isNumeric ? '' : (generateSingleKey(key) + ': ')
-            paint.push('key', name, { id })
+            if (!isNumeric) {
+              const singleKey = generateSingleKey(key)
+              paint.push('key', singleKey.out, { id, crayon: singleKey.crayon })
+              paint.push('key', ': ', { id })
+            }
 
             const single = generateSingleValue(v, { levels, stringColor: true, intToHex: isBuffer })
             if (single !== null) {
-              paint.push('value', single, { id })
+              paint.push('value', single.out, { id, crayon: single.crayon })
             } else if (typeof v === 'object') {
               if (backward.has(v) || (!add && forward.has(v))) {
-                paint.push('value', crayon.cyan('[Circular]'), { id })
+                paint.push('value', '[Circular]', { id, crayon: 'cyan' })
                 continue
               }
 
@@ -136,15 +138,17 @@ class Console {
             if (count === 1) {
               paint.push('spacing-start', null, { id, levels })
             } else {
-              paint.push('separator', ',')
+              paint.push('separator', ',', { id })
               paint.push('spacing-sep', null, { id, levels })
             }
 
-            const name = isArray ? '' : ('[' + symbol.toString() + ']: ')
-            paint.push('key', name, { id })
+            if (!isArray) {
+              paint.push('key', '[' + symbol.toString() + ']: ', { id })
+            }
 
             const single = generateSingleValue(arg[symbol], { levels })
-            paint.push('value', single, { id })
+            if (single === null) throw new Error('Symbol value not supported: (' + (typeof arg[symbol]) + '): ' + arg[symbol])
+            paint.push('value', single.out, { id, crayon: single.crayon })
           }
 
           if (!isObject && arg.length > MAX) paint.push('more', null, { id, levels, isArray, isInts, isBuffer, arg, left: (arg.length - MAX) })
@@ -171,42 +175,42 @@ class Console {
     stream.write(paint.done())
 
     function generateSingleKey (key) {
-      if (key === '') return crayon.green("''")
+      if (key === '') return { out: "''", crayon: 'green' }
 
       const names = ['undefined', 'null', 'true', 'false', 'NaN', 'Infinity']
-      if (names.indexOf(key) > -1) return key
+      if (names.indexOf(key) > -1) return { out: key }
 
-      if (isKindOfAlphaNumeric(key) && !isFinite(key)) return key
+      if (isKindOfAlphaNumeric(key) && !isFinite(key)) return { out: key }
 
-      return crayon.green("'" + key + "'")
+      return { out: "'" + key + "'", crayon: 'green' }
     }
 
     function generateSingleValue (value, { levels = 0, stringColor = false, escape = true, intToHex = false } = {}) {
-      if (typeof value === 'undefined') return crayon.blackBright('undefined')
-      if (value === null) return crayon.whiteBright(crayon.bold('null'))
+      if (typeof value === 'undefined') return { out: 'undefined', crayon: 'blackBright' }
+      if (value === null) return { out: 'null', crayon: 'bold' }
 
-      if (typeof value === 'string') return stringColor ? crayon.green(dynamicQuotes(value, { escape })) : dynamicQuotes(value, { escape })
-      if (typeof value === 'number') return intToHex ? numberToHex(value) : crayon.yellow(value)
-      if (typeof value === 'boolean') return crayon.yellow(value)
-      if (typeof value === 'function') return crayon.cyan(value.name ? '[Function: ' + value.name + ']' : '[Function (anonymous)]')
-      if (typeof value === 'symbol') return crayon.green(value.toString())
-      if (typeof value === 'bigint') return value.toString() + 'n' // + edge case: typeof Object(1n) === 'object'
+      if (typeof value === 'string') return stringColor ? { out: dynamicQuotes(value, { escape }), crayon: 'green' } : { out: dynamicQuotes(value, { escape }) }
+      if (typeof value === 'number') return intToHex ? { out: numberToHex(value) } : { out: value.toString(), crayon: 'yellow' }
+      if (typeof value === 'boolean') return { out: value.toString(), crayon: 'yellow' }
+      if (typeof value === 'function') return { out: (value.name ? '[Function: ' + value.name + ']' : '[Function (anonymous)]'), crayon: 'cyan' }
+      if (typeof value === 'symbol') return { out: value.toString(), crayon: 'green' }
+      if (typeof value === 'bigint') return { out: value.toString() + 'n' } // + edge case: typeof Object(1n) === 'object'
 
-      if (value instanceof Promise) return 'Promise'
-      if (value instanceof RegExp) return value.toString()
+      if (value instanceof Promise) return { out: 'Promise' }
+      if (value instanceof RegExp) return { out: value.toString() }
 
       // + AggregateError?
-      if (value instanceof Error) return value.stack // This includes EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError
-      if (value instanceof String) return '[String: ' + dynamicQuotes(value.toString()) + ']'
-      if (value instanceof Number) return '[Number: ' + value.toString() + ']'
-      if (value instanceof Boolean) return '[Boolean: ' + value.toString() + ']'
-      if (value instanceof Date) return value.toISOString()
+      if (value instanceof Error) return { out: value.stack } // This includes EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError
+      if (value instanceof String) return { out: '[String: ' + dynamicQuotes(value.toString()) + ']' }
+      if (value instanceof Number) return { out: '[Number: ' + value.toString() + ']' }
+      if (value instanceof Boolean) return { out: '[Boolean: ' + value.toString() + ']' }
+      if (value instanceof Date) return { out: value.toISOString() }
 
-      if (value instanceof Map) return 'Map(' + value.size + ') {' + (value.size ? ' ... ' : '') + '}'
-      if (value instanceof Set) return 'Set(' + value.size + ') {' + (value.size ? ' ... ' : '') + '}'
+      if (value instanceof Map) return { out: 'Map(' + value.size + ') {' + (value.size ? ' ... ' : '') + '}' }
+      if (value instanceof Set) return { out: 'Set(' + value.size + ') {' + (value.size ? ' ... ' : '') + '}' }
 
-      if (value instanceof WeakMap) return 'WeakMap { <items unknown> }'
-      if (value instanceof WeakSet) return 'WeakSet { <items unknown> }'
+      if (value instanceof WeakMap) return { out: 'WeakMap { <items unknown> }' }
+      if (value instanceof WeakSet) return { out: 'WeakSet { <items unknown> }' }
 
       return null
     }
@@ -257,19 +261,24 @@ function adaptStream (stream) {
 }
 
 class Paint {
-  constructor () {
+  constructor (crayon) {
     this.prints = []
     this.width = { all: 0 }
+    this.crayon = crayon
   }
 
   push (type, chunk = null, opts = null) {
-    if (typeof chunk === 'string') {
-      this.width.all += chunk.length // + if colors were decoupled from chunk then width would be correct
+    if (chunk !== null) {
+      this.width.all += chunk.length // + it's not including spaces as it's mostly dynamic
 
       if (opts && opts.id !== undefined) {
         if (!this.width[opts.id]) this.width[opts.id] = { self: 0, child: 0 }
         this.width[opts.id].self += chunk.length
       }
+    }
+
+    if (opts && opts.crayon) {
+      chunk = this.crayon[opts.crayon](chunk)
     }
 
     this.prints.push({ type, chunk, ...opts })
