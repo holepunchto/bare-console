@@ -142,7 +142,7 @@ class Console {
             }
 
             if (!isArray) {
-              paint.push('key', ['[',  { out: symbol.toString(), crayon: 'green' }, ']', ': '], { id })
+              paint.push('key', ['[', { out: symbol.toString(), crayon: 'green' }, ']', ': '], { id })
             }
 
             const single = generateSingleValue(arg[symbol], { levels })
