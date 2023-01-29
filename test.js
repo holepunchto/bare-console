@@ -1,37 +1,27 @@
 const test = require('brittle')
 const TinyConsole = require('./index.js')
-const path = require('path')
-const fs = require('fs')
-const os = require('os')
+const { Writable } = require('streamx')
 
 test.configure({ source: false })
 
 test('colors option', async function (t) {
-  const tmpdir = createTmpDir(t)
-  const ws = fs.createWriteStream(path.join(tmpdir, 'stdout.log'))
+  const nontty = storedWritable(false)
+  const tty = storedWritable(true)
   const noop = () => {}
 
-  t.ok((new TinyConsole({ stdout: noop })).colors)
-  t.absent((new TinyConsole({ stdout: noop, colors: false })).colors)
+  t.absent(nontty.isTTY)
+  t.ok(tty.isTTY)
 
-  t.is((new TinyConsole({ stdout: process.stdout })).colors, process.stdout.isTTY)
-  t.absent((new TinyConsole({ stdout: process.stdout, colors: false })).colors)
+  t.ok((new TinyConsole({ stdout: noop })).colors, 'colors enabled if stdout is a write fn')
+  t.absent((new TinyConsole({ stdout: noop, colors: false })).colors, 'force disable colors with fn')
 
-  t.absent((new TinyConsole({ stdout: ws })).colors)
-  t.ok((new TinyConsole({ stdout: ws, colors: true })).colors)
+  t.ok((new TinyConsole({ stdout: tty })).colors, 'colors enabled with tty')
+  t.absent((new TinyConsole({ stdout: tty, colors: false })).colors, 'force disable colors with tty')
 
-  await new Promise(resolve => {
-    ws.end()
+  t.absent((new TinyConsole({ stdout: nontty })).colors, 'colors disabled with non-tty')
+  t.ok((new TinyConsole({ stdout: nontty, colors: true })).colors, 'force disable colors with non-tty')
 
-    ws.once('error', done)
-    ws.once('close', done)
-
-    function done () {
-      ws.off('error', done)
-      ws.off('close', done)
-      resolve()
-    }
-  })
+  await finishStreams([nontty, tty])
 })
 
 test('basic log', async function (t) {
@@ -185,7 +175,7 @@ test('escape string', async function (t) {
 })
 
 test('errors', async function (t) {
-  const { nodeConsole, tinyConsole, closeAndCompare } = create(t)
+  const { nodeConsole, tinyConsole, closeAndCompare } = create(t, { isTTY: false }) // + stack gray colors
 
   const error = new Error('Something happened')
   const evalError = new EvalError('Something happened', 'example.js', 10)
@@ -890,74 +880,54 @@ test.skip('times with different format', async function (t) {
 // nodeConsole.log(new Array(16).fill('a'))
 // console.log(new Map)
 
-function create (t) {
-  const tmpdir = createTmpDir(t)
+function create (t, { isTTY = true } = {}) {
+  const nodeStreams = { stdout: storedWritable(isTTY), stderr: storedWritable(isTTY) }
+  const tinyStreams = { stdout: storedWritable(isTTY), stderr: storedWritable(isTTY) }
 
-  // + it should be a stream with isTTY so it also compares colors!
+  const nodeConsole = new console.Console(nodeStreams)
+  const tinyConsole = new TinyConsole(tinyStreams)
 
-  const nodeWriteStreams = {
-    stdout: fs.createWriteStream(path.join(tmpdir, 'node-stdout.log')),
-    stderr: fs.createWriteStream(path.join(tmpdir, 'node-stderr.log'))
-  }
-
-  const tinyWriteStreams = {
-    stdout: fs.createWriteStream(path.join(tmpdir, 'tiny-stdout.log')),
-    stderr: fs.createWriteStream(path.join(tmpdir, 'tiny-stderr.log'))
-  }
-
-  const nodeConsole = new console.Console(nodeWriteStreams)
-  const tinyConsole = new TinyConsole(tinyWriteStreams)
-
-  return { tmpdir, nodeConsole, tinyConsole, close, readLogs, closeAndCompare }
+  return { nodeConsole, tinyConsole, closeAndCompare }
 
   async function closeAndCompare () {
-    await close()
+    await finishStreams([nodeStreams.stdout, nodeStreams.stderr, tinyStreams.stdout, tinyStreams.stderr])
 
-    const logs = readLogs()
-    t.alike(logs.tinyStdout, logs.nodeStdout, logs.tinyStdout.length === 0 && logs.nodeStdout.length === 0 ? '(stdout buffers are empty)' : '')
-    t.alike(logs.tinyStderr, logs.nodeStderr, logs.tinyStderr.length === 0 && logs.nodeStderr.length === 0 ? '(stderr buffers are empty)' : '')
-  }
+    const node = { stdout: nodeStreams.stdout.storage.join(''), stderr: nodeStreams.stderr.storage.join('') }
+    const tiny = { stdout: tinyStreams.stdout.storage.join(''), stderr: tinyStreams.stderr.storage.join('') }
 
-  function readLogs () {
-    // + remove utf8!
-
-    const nodeStdout = fs.readFileSync(path.join(tmpdir, 'node-stdout.log'), 'utf8')
-    const nodeStderr = fs.readFileSync(path.join(tmpdir, 'node-stderr.log'), 'utf8')
-
-    const tinyStdout = fs.readFileSync(path.join(tmpdir, 'tiny-stdout.log'), 'utf8')
-    const tinyStderr = fs.readFileSync(path.join(tmpdir, 'tiny-stderr.log'), 'utf8')
-
-    return { nodeStdout, nodeStderr, tinyStdout, tinyStderr }
-  }
-
-  function close () {
-    return new Promise(resolve => {
-      nodeWriteStreams.stdout.end()
-      nodeWriteStreams.stderr.end()
-
-      tinyWriteStreams.stdout.end()
-      tinyWriteStreams.stderr.end()
-
-      nodeWriteStreams.stdout.once('close', done)
-      nodeWriteStreams.stderr.once('close', done)
-
-      tinyWriteStreams.stdout.once('close', done)
-      tinyWriteStreams.stderr.once('close', done)
-
-      let count = 0
-
-      function done () {
-        if (++count === 4) {
-          resolve()
-        }
-      }
-    })
+    t.alike(tiny.stdout, node.stdout, tiny.stdout.length === 0 && node.stdout.length === 0 ? '(stdout buffers are empty)' : '')
+    t.alike(tiny.stderr, node.stderr, tiny.stderr.length === 0 && node.stderr.length === 0 ? '(stderr buffers are empty)' : '')
   }
 }
 
-function createTmpDir (t) {
-  const tmpdir = path.join(os.tmpdir(), 'tiny-console-test-')
-  const dir = fs.mkdtempSync(tmpdir)
-  t.teardown(() => fs.rmSync(dir, { recursive: true }))
-  return dir
+function finishStreams (streams) {
+  return new Promise(resolve => {
+    let count = 0
+
+    for (const stream of streams) {
+      count++
+      stream.end()
+      stream.once('close', done)
+    }
+
+    function done () {
+      if (--count === 0) {
+        resolve()
+      }
+    }
+  })
+}
+
+function storedWritable (isTTY = false) {
+  const stream = new Writable({
+    write (data, cb) {
+      this.storage.push(data)
+      cb()
+    }
+  })
+
+  stream.storage = []
+  stream.isTTY = isTTY
+
+  return stream
 }
