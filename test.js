@@ -1,6 +1,6 @@
 const test = require('brittle')
-const TinyConsole = require('./index.js')
 const { Writable } = require('streamx')
+const Console = require('.')
 
 test.configure({ source: false })
 
@@ -12,14 +12,14 @@ test('colors option', async function (t) {
   t.absent(nontty.isTTY)
   t.ok(tty.isTTY)
 
-  t.ok((new TinyConsole({ stdout: noop })).colors, 'colors enabled if stdout is a write fn')
-  t.absent((new TinyConsole({ stdout: noop, colors: false })).colors, 'force disable colors with fn')
+  t.ok((new Console({ stdout: noop })).colors, 'colors enabled if stdout is a write fn')
+  t.absent((new Console({ stdout: noop, colors: false })).colors, 'force disable colors with fn')
 
-  t.ok((new TinyConsole({ stdout: tty })).colors, 'colors enabled with tty')
-  t.absent((new TinyConsole({ stdout: tty, colors: false })).colors, 'force disable colors with tty')
+  t.ok((new Console({ stdout: tty })).colors, 'colors enabled with tty')
+  t.absent((new Console({ stdout: tty, colors: false })).colors, 'force disable colors with tty')
 
-  t.absent((new TinyConsole({ stdout: nontty })).colors, 'colors disabled with non-tty')
-  t.ok((new TinyConsole({ stdout: nontty, colors: true })).colors, 'force disable colors with non-tty')
+  t.absent((new Console({ stdout: nontty })).colors, 'colors disabled with non-tty')
+  t.ok((new Console({ stdout: nontty, colors: true })).colors, 'force disable colors with non-tty')
 
   await finishStreams([nontty, tty])
 })
@@ -885,7 +885,7 @@ function create (t, { isTTY = true } = {}) {
   const tinyStreams = { stdout: storedWritable(isTTY), stderr: storedWritable(isTTY) }
 
   const nodeConsole = new console.Console(nodeStreams)
-  const tinyConsole = new TinyConsole(tinyStreams)
+  const tinyConsole = new Console(tinyStreams)
 
   return { nodeConsole, tinyConsole, closeAndCompare }
 

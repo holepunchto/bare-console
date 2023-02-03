@@ -1,12 +1,13 @@
 # @pearjs/console
 
-Simple debugging console
+Simple debugging console for JavaScript.
 
 ```
 npm i @pearjs/console
 ```
 
 ## Usage
+
 ```javascript
 const Console = require('@pearjs/console')
 const console = new Console({ stdout: process.stdout, stderr: process.stderr })

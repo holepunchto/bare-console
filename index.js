@@ -1,6 +1,6 @@
 const { Crayon } = require('tiny-crayon')
 
-class Console {
+module.exports = class Console {
   constructor (opts = {}) {
     const { isTTY } = adaptStream(opts.stdout || opts.stderr)
     this.colors = typeof opts.colors === 'boolean' ? opts.colors : isTTY
@@ -378,5 +378,3 @@ function isKindOfAlphaNumeric (str) {
 
   return true
 }
-
-module.exports = Console
