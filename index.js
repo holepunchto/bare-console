@@ -58,7 +58,7 @@ class Console {
 
       const single = generateSingleValue(arg, { escape: false })
       if (single !== null) {
-        paint.push('value', single.out, { crayon: single.crayon })
+        paint.push('value', single)
       } else if (typeof arg === 'object') {
         let levels = 0
 
@@ -110,13 +110,12 @@ class Console {
 
             if (!isNumeric) {
               const singleKey = generateSingleKey(key)
-              paint.push('key', singleKey.out, { id, crayon: singleKey.crayon })
-              paint.push('key', ': ', { id })
+              paint.push('key', [singleKey, ': '], { id })
             }
 
             const single = generateSingleValue(v, { levels, stringColor: true, intToHex: isBuffer })
             if (single !== null) {
-              paint.push('value', single.out, { id, crayon: single.crayon })
+              paint.push('value', single, { id })
             } else if (typeof v === 'object') {
               if (backward.has(v) || (!add && forward.has(v))) {
                 paint.push('value', '[Circular]', { id, crayon: 'cyan' })
@@ -143,12 +142,12 @@ class Console {
             }
 
             if (!isArray) {
-              paint.push('key', '[' + symbol.toString() + ']: ', { id })
+              paint.push('key', ['[', { out: symbol.toString(), crayon: 'green' }, ']', ': '], { id })
             }
 
             const single = generateSingleValue(arg[symbol], { levels })
             if (single === null) throw new Error('Symbol value not supported: (' + (typeof arg[symbol]) + '): ' + arg[symbol])
-            paint.push('value', single.out, { id, crayon: single.crayon })
+            paint.push('value', single, { id })
           }
 
           if (!isObject && arg.length > MAX) paint.push('more', null, { id, levels, isArray, isInts, isBuffer, arg, left: (arg.length - MAX) })
@@ -194,23 +193,23 @@ class Console {
       if (typeof value === 'boolean') return { out: value.toString(), crayon: 'yellow' }
       if (typeof value === 'function') return { out: (value.name ? '[Function: ' + value.name + ']' : '[Function (anonymous)]'), crayon: 'cyan' }
       if (typeof value === 'symbol') return { out: value.toString(), crayon: 'green' }
-      if (typeof value === 'bigint') return { out: value.toString() + 'n' } // + edge case: typeof Object(1n) === 'object'
+      if (typeof value === 'bigint') return { out: value.toString() + 'n', crayon: 'yellow' } // + edge case: typeof Object(1n) === 'object'
 
       if (value instanceof Promise) return { out: 'Promise' }
-      if (value instanceof RegExp) return { out: value.toString() }
+      if (value instanceof RegExp) return { out: value.toString(), crayon: 'red' }
 
       // + AggregateError?
       if (value instanceof Error) return { out: value.stack } // This includes EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError
-      if (value instanceof String) return { out: '[String: ' + dynamicQuotes(value.toString()) + ']' }
-      if (value instanceof Number) return { out: '[Number: ' + value.toString() + ']' }
-      if (value instanceof Boolean) return { out: '[Boolean: ' + value.toString() + ']' }
-      if (value instanceof Date) return { out: value.toISOString() }
+      if (value instanceof String) return { out: '[String: ' + dynamicQuotes(value.toString()) + ']', crayon: 'green' }
+      if (value instanceof Number) return { out: '[Number: ' + value.toString() + ']', crayon: 'yellow' }
+      if (value instanceof Boolean) return { out: '[Boolean: ' + value.toString() + ']', crayon: 'yellow' }
+      if (value instanceof Date) return { out: value.toISOString(), crayon: 'magenta' }
 
       if (value instanceof Map) return { out: 'Map(' + value.size + ') {' + (value.size ? ' ... ' : '') + '}' }
       if (value instanceof Set) return { out: 'Set(' + value.size + ') {' + (value.size ? ' ... ' : '') + '}' }
 
-      if (value instanceof WeakMap) return { out: 'WeakMap { <items unknown> }' }
-      if (value instanceof WeakSet) return { out: 'WeakSet { <items unknown> }' }
+      if (value instanceof WeakMap) return [{ out: 'WeakMap { ' }, { out: '<items unknown>', crayon: 'cyan' }, { out: ' }' }]
+      if (value instanceof WeakSet) return [{ out: 'WeakSet { ' }, { out: '<items unknown>', crayon: 'cyan' }, { out: ' }' }]
 
       return null
     }
@@ -267,7 +266,16 @@ class Paint {
     this.crayon = crayon
   }
 
-  push (type, chunk = null, opts = null) {
+  push (type, chunk = null, opts = {}) {
+    if (Array.isArray(chunk)) return chunk.forEach(value => this.push(type, value, opts))
+
+    let color = opts.crayon
+
+    if (chunk && typeof chunk === 'object') {
+      color = chunk.crayon
+      chunk = chunk.out
+    }
+
     if (chunk !== null) {
       this.width.all += chunk.length // + it's not including spaces as it's mostly dynamic
 
@@ -277,9 +285,7 @@ class Paint {
       }
     }
 
-    if (opts && opts.crayon) {
-      chunk = this.crayon[opts.crayon](chunk)
-    }
+    if (color) chunk = this.crayon[color](chunk)
 
     this.prints.push({ type, chunk, ...opts })
   }
