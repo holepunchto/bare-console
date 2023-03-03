@@ -24,4 +24,4 @@ console.trace('Show me')
 
 ## License
 
-MIT
+Apache-2.0
