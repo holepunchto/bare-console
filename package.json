@@ -1,5 +1,5 @@
 {
-  "name": "@pearjs/console",
+  "name": "bare-console",
   "version": "2.0.1",
   "description": "Simple debugging console for JavaScript",
   "main": "index.js",
@@ -7,18 +7,18 @@
     "index.js"
   ],
   "scripts": {
-    "test": "standard && brittle test.js"
+    "test": "standard && bare test.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/holepunchto/pearjs-console.git"
+    "url": "https://github.com/holepunchto/bare-console.git"
   },
   "author": "Holepunch",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/holepunchto/pearjs-console/issues"
+    "url": "https://github.com/holepunchto/bare-console/issues"
   },
-  "homepage": "https://github.com/holepunchto/pearjs-console#readme",
+  "homepage": "https://github.com/holepunchto/bare-console#readme",
   "dependencies": {
     "tiny-crayon": "^1.0.4"
   },

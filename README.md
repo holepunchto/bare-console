@@ -1,15 +1,15 @@
-# @pearjs/console
+# bare-console
 
 Simple debugging console for JavaScript.
 
 ```
-npm i @pearjs/console
+npm i bare-console
 ```
 
 ## Usage
 
 ```javascript
-const Console = require('@pearjs/console')
+const Console = require('bare-console')
 const console = new Console({ stdout: process.stdout, stderr: process.stderr })
 
 console.log('Hello')

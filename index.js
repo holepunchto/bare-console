@@ -252,7 +252,6 @@ function escapeString (str, singled = false) {
 }
 
 function adaptStream (stream) {
-  // pearjs
   if (typeof stream === 'function') {
     return { isTTY: true, write: stream }
   }
