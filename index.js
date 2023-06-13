@@ -51,7 +51,7 @@ module.exports = class Console {
 
   _print (stream, ...args) {
     const paint = new Paint(this.crayon)
-    let identifier = 0
+    const refs = { identifier: 0 }
 
     for (let i = 0; i < args.length; i++) {
       const arg = args[i]
@@ -60,108 +60,7 @@ module.exports = class Console {
       if (single !== null) {
         paint.push('value', single)
       } else if (typeof arg === 'object') {
-        let levels = 0
-
-        iterateObject(arg)
-
-        function iterateObject (arg, backward = new WeakSet(), forward = new WeakSet(), add = true) {
-          if (add) backward.add(arg)
-          else forward.add(arg)
-
-          const id = identifier++
-          const isArray = Array.isArray(arg)
-          const isBuffer = Buffer.isBuffer(arg) && arg.constructor.name === 'Buffer'
-          const isInts = !isBuffer && isIntArray(arg)
-          const isObject = !(isArray || isInts || isBuffer)
-          const brackets = isBuffer ? '<>' : (isInts || isArray ? '[]' : '{}')
-
-          levels++
-
-          if (levels >= 4 && !isObjectEmpty(arg)) {
-            let type = isArray ? 'Array' : (typeof arg)
-            type = type[0].toUpperCase() + type.slice(1)
-            paint.push('value', '[' + type + ']', { id, crayon: 'cyan' })
-            levels--
-            return paint.width[id]
-          }
-
-          if (isInts) paint.push('open', arg.constructor.name + '(' + arg.length + ') ', { id })
-          paint.push('open', brackets[0], { id })
-          if (isBuffer) paint.push('open', 'Buffer', { id })
-
-          const MAX = isObject ? Infinity : (isBuffer ? 50 : 100)
-          let count = 0
-
-          for (const key in arg) {
-            const k = isObject ? key : parseInt(key, 10)
-            const isNumeric = !isObject && isFinite(k)
-            const v = arg[isNumeric ? k : key]
-
-            if (isBuffer && !isNumeric && Object.hasOwn(Object.getPrototypeOf(arg), key)) continue
-
-            if (count++ >= MAX) break
-
-            if (count === 1) {
-              paint.push('spacing-start', null, { id, levels, isArray, isInts, isBuffer, arg, k })
-            } else {
-              paint.push('separator', isBuffer && isNumeric ? '' : ',', { id })
-              paint.push('spacing-sep', null, { id, levels, isArray, isInts, isBuffer, arg, k })
-            }
-
-            if (!isNumeric) {
-              const singleKey = generateSingleKey(key)
-              paint.push('key', [singleKey, ': '], { id })
-            }
-
-            const single = generateSingleValue(v, { levels, stringColor: true, intToHex: isBuffer })
-            if (single !== null) {
-              paint.push('value', single, { id })
-            } else if (typeof v === 'object') {
-              if (backward.has(v) || (!add && forward.has(v))) {
-                paint.push('value', '[Circular]', { id, crayon: 'cyan' })
-                continue
-              }
-
-              const subWidth = iterateObject(v, backward, forward, false)
-              paint.width[id].child += subWidth.self + subWidth.child // + double check after colors fix
-            } else {
-              throw new Error('Argument not supported (' + (typeof v) + '): ' + v)
-            }
-          }
-
-          const symbols = Object.getOwnPropertySymbols(arg)
-
-          for (const symbol of symbols) {
-            count++
-
-            if (count === 1) {
-              paint.push('spacing-start', null, { id, levels })
-            } else {
-              paint.push('separator', ',', { id })
-              paint.push('spacing-sep', null, { id, levels })
-            }
-
-            if (!isArray) {
-              paint.push('key', ['[', { out: symbol.toString(), crayon: 'green' }, ']', ': '], { id })
-            }
-
-            const single = generateSingleValue(arg[symbol], { levels })
-            if (single === null) throw new Error('Symbol value not supported: (' + (typeof arg[symbol]) + '): ' + arg[symbol])
-            paint.push('value', single, { id })
-          }
-
-          if (!isObject && arg.length > MAX) paint.push('more', null, { id, levels, isArray, isInts, isBuffer, arg, left: (arg.length - MAX) })
-
-          if (count > 0) paint.push('spacing-end', null, { id, levels, isArray, isInts, isBuffer, arg })
-
-          if (count === 0 && isBuffer) paint.push('spacing-sep', null, { id, levels, isArray, isInts, isBuffer, arg })
-
-          paint.push('close', brackets[1], { id })
-
-          levels--
-
-          return paint.width[id]
-        }
+        iterator(paint, arg, { add: true, backward: new WeakSet(), forward: new WeakSet(), levels: 0 }, refs)
       } else {
         throw new Error('Argument not supported (' + (typeof arg) + '): ' + arg)
       }
@@ -172,48 +71,146 @@ module.exports = class Console {
     paint.push('break-line', '\n')
 
     stream.write(paint.done())
+  }
+}
 
-    function generateSingleKey (key) {
-      if (key === '') return { out: "''", crayon: 'green' }
+function iterator (paint, arg, opts, refs) {
+  if (opts.add) opts.backward.add(arg)
+  else opts.forward.add(arg)
 
-      const names = ['undefined', 'null', 'true', 'false', 'NaN', 'Infinity']
-      if (names.indexOf(key) > -1) return { out: key }
+  const id = refs.identifier++
+  const levels = ++opts.levels
+  const isArray = Array.isArray(arg)
+  const isBuffer = Buffer.isBuffer(arg) && arg.constructor.name === 'Buffer'
+  const isInts = !isBuffer && isIntArray(arg)
+  const isObject = !(isArray || isInts || isBuffer)
+  const brackets = isBuffer ? '<>' : (isInts || isArray ? '[]' : '{}')
 
-      if (isKindOfAlphaNumeric(key) && !isFinite(key)) return { out: key }
+  if (levels >= 4 && !isObjectEmpty(arg)) {
+    let type = isArray ? 'Array' : (typeof arg)
+    type = type[0].toUpperCase() + type.slice(1)
+    paint.push('value', '[' + type + ']', { id, crayon: 'cyan' })
+    opts.levels--
+    return paint.width[id]
+  }
 
-      return { out: "'" + key + "'", crayon: 'green' }
+  if (isInts) paint.push('open', arg.constructor.name + '(' + arg.length + ') ', { id })
+  paint.push('open', brackets[0], { id })
+  if (isBuffer) paint.push('open', 'Buffer', { id })
+
+  const MAX = isObject ? Infinity : (isBuffer ? 50 : 100)
+  let count = 0
+
+  for (const key in arg) {
+    const k = isObject ? key : parseInt(key, 10)
+    const isNumeric = !isObject && isFinite(k)
+    const v = arg[isNumeric ? k : key]
+
+    if (isBuffer && !isNumeric && Object.hasOwn(Object.getPrototypeOf(arg), key)) continue
+
+    if (count++ >= MAX) break
+
+    if (count === 1) {
+      paint.push('spacing-start', null, { id, levels, isArray, isInts, isBuffer, arg, k })
+    } else {
+      paint.push('separator', isBuffer && isNumeric ? '' : ',', { id })
+      paint.push('spacing-sep', null, { id, levels, isArray, isInts, isBuffer, arg, k })
     }
 
-    function generateSingleValue (value, { levels = 0, stringColor = false, escape = true, intToHex = false } = {}) {
-      if (typeof value === 'undefined') return { out: 'undefined', crayon: 'blackBright' }
-      if (value === null) return { out: 'null', crayon: 'bold' }
+    if (!isNumeric) {
+      const singleKey = generateSingleKey(key)
+      paint.push('key', [singleKey, ': '], { id })
+    }
 
-      if (typeof value === 'string') return stringColor ? { out: dynamicQuotes(value, { escape }), crayon: 'green' } : { out: dynamicQuotes(value, { escape }) }
-      if (typeof value === 'number') return intToHex ? { out: numberToHex(value) } : { out: value.toString(), crayon: 'yellow' }
-      if (typeof value === 'boolean') return { out: value.toString(), crayon: 'yellow' }
-      if (typeof value === 'function') return { out: (value.name ? '[Function: ' + value.name + ']' : '[Function (anonymous)]'), crayon: 'cyan' }
-      if (typeof value === 'symbol') return { out: value.toString(), crayon: 'green' }
-      if (typeof value === 'bigint') return { out: value.toString() + 'n', crayon: 'yellow' } // + edge case: typeof Object(1n) === 'object'
+    const single = generateSingleValue(v, { levels, stringColor: true, intToHex: isBuffer })
+    if (single !== null) {
+      paint.push('value', single, { id })
+    } else if (typeof v === 'object') {
+      if (opts.backward.has(v) || (!opts.add && opts.forward.has(v))) {
+        paint.push('value', '[Circular]', { id, crayon: 'cyan' })
+        continue
+      }
 
-      if (value instanceof Promise) return { out: 'Promise' }
-      if (value instanceof RegExp) return { out: value.toString(), crayon: 'red' }
-
-      // + AggregateError?
-      if (value instanceof Error) return { out: value.stack } // This includes EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError
-      if (value instanceof String) return { out: '[String: ' + dynamicQuotes(value.toString()) + ']', crayon: 'green' }
-      if (value instanceof Number) return { out: '[Number: ' + value.toString() + ']', crayon: 'yellow' }
-      if (value instanceof Boolean) return { out: '[Boolean: ' + value.toString() + ']', crayon: 'yellow' }
-      if (value instanceof Date) return { out: value.toISOString(), crayon: 'magenta' }
-
-      if (value instanceof Map) return { out: 'Map(' + value.size + ') {' + (value.size ? ' ... ' : '') + '}' }
-      if (value instanceof Set) return { out: 'Set(' + value.size + ') {' + (value.size ? ' ... ' : '') + '}' }
-
-      if (value instanceof WeakMap) return [{ out: 'WeakMap { ' }, { out: '<items unknown>', crayon: 'cyan' }, { out: ' }' }]
-      if (value instanceof WeakSet) return [{ out: 'WeakSet { ' }, { out: '<items unknown>', crayon: 'cyan' }, { out: ' }' }]
-
-      return null
+      const subWidth = iterator(paint, v, { ...opts, add: false }, refs)
+      paint.width[id].child += subWidth.self + subWidth.child // + double check after colors fix
+    } else {
+      throw new Error('Argument not supported (' + (typeof v) + '): ' + v)
     }
   }
+
+  const symbols = Object.getOwnPropertySymbols(arg)
+
+  for (const symbol of symbols) {
+    count++
+
+    if (count === 1) {
+      paint.push('spacing-start', null, { id, levels })
+    } else {
+      paint.push('separator', ',', { id })
+      paint.push('spacing-sep', null, { id, levels })
+    }
+
+    if (!isArray) {
+      paint.push('key', ['[', { out: symbol.toString(), crayon: 'green' }, ']', ': '], { id })
+    }
+
+    const single = generateSingleValue(arg[symbol], { levels })
+    if (single === null) throw new Error('Symbol value not supported: (' + (typeof arg[symbol]) + '): ' + arg[symbol])
+    paint.push('value', single, { id })
+  }
+
+  if (!isObject && arg.length > MAX) paint.push('more', null, { id, levels, isArray, isInts, isBuffer, arg, left: (arg.length - MAX) })
+
+  if (count > 0) paint.push('spacing-end', null, { id, levels, isArray, isInts, isBuffer, arg })
+
+  if (count === 0 && isBuffer) paint.push('spacing-sep', null, { id, levels, isArray, isInts, isBuffer, arg })
+
+  paint.push('close', brackets[1], { id })
+
+  opts.levels--
+
+  return paint.width[id]
+}
+
+function generateSingleKey (key) {
+  if (key === '') return { out: "''", crayon: 'green' }
+
+  const names = ['undefined', 'null', 'true', 'false', 'NaN', 'Infinity']
+  if (names.indexOf(key) > -1) return { out: key }
+
+  if (isKindOfAlphaNumeric(key) && !isFinite(key)) return { out: key }
+
+  return { out: "'" + key + "'", crayon: 'green' }
+}
+
+function generateSingleValue (value, { levels = 0, stringColor = false, escape = true, intToHex = false } = {}) {
+  if (typeof value === 'undefined') return { out: 'undefined', crayon: 'blackBright' }
+  if (value === null) return { out: 'null', crayon: 'bold' }
+
+  if (typeof value === 'string') return stringColor ? { out: dynamicQuotes(value, { escape }), crayon: 'green' } : { out: dynamicQuotes(value, { escape }) }
+  if (typeof value === 'number') return intToHex ? { out: numberToHex(value) } : { out: value.toString(), crayon: 'yellow' }
+  if (typeof value === 'boolean') return { out: value.toString(), crayon: 'yellow' }
+  if (typeof value === 'function') return { out: (value.name ? '[Function: ' + value.name + ']' : '[Function (anonymous)]'), crayon: 'cyan' }
+  if (typeof value === 'symbol') return { out: value.toString(), crayon: 'green' }
+  if (typeof value === 'bigint') return { out: value.toString() + 'n', crayon: 'yellow' } // + edge case: typeof Object(1n) === 'object'
+
+  if (value instanceof Promise) return { out: 'Promise' }
+  if (value instanceof RegExp) return { out: value.toString(), crayon: 'red' }
+
+  // + AggregateError?
+  if (value instanceof Error) return { out: value.stack } // This includes EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError
+  if (value instanceof String) return { out: '[String: ' + dynamicQuotes(value.toString()) + ']', crayon: 'green' }
+  if (value instanceof Number) return { out: '[Number: ' + value.toString() + ']', crayon: 'yellow' }
+  if (value instanceof Boolean) return { out: '[Boolean: ' + value.toString() + ']', crayon: 'yellow' }
+  if (value instanceof Date) return { out: value.toISOString(), crayon: 'magenta' }
+
+  if (value instanceof Map) return { out: 'Map(' + value.size + ') {' + (value.size ? ' ... ' : '') + '}' }
+  if (value instanceof Set) return { out: 'Set(' + value.size + ') {' + (value.size ? ' ... ' : '') + '}' }
+
+  if (value instanceof WeakMap) return [{ out: 'WeakMap { ' }, { out: '<items unknown>', crayon: 'cyan' }, { out: ' }' }]
+  if (value instanceof WeakSet) return [{ out: 'WeakSet { ' }, { out: '<items unknown>', crayon: 'cyan' }, { out: ' }' }]
+
+  return null
 }
 
 function numberToHex (value) {
