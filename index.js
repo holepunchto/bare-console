@@ -239,7 +239,6 @@ function dynamicQuotes (str, opts = {}) {
 function escapeString (str, singled = false) {
   str = str
     .replace(/[\\]/g, '\\\\')
-    .replace(/[/]/g, '\\/')
     .replace(/[\b]/g, '\\b')
     .replace(/[\f]/g, '\\f')
     .replace(/[\n]/g, '\\n')
