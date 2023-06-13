@@ -169,6 +169,25 @@ test('escape string', async function (t) {
 
     logger.log('he\u2028llo')
     logger.log('he\u2029llo')
+
+    logger.log({ str: 'he\tl\nlo' })
+
+    logger.log({ str: "how'dy" })
+    logger.log({ str: "how\\'dy" })
+    logger.log({ str: 'how"dy' })
+    logger.log({ str: 'how`dy' })
+    logger.log({ str: 'how\'d"y' })
+    logger.log({ str: 'how\'d"y`' })
+    logger.log({ str: "how'd\"y`" })
+    logger.log({ str: `how'd"y` }) // eslint-disable-line
+
+    logger.log({ str: 'he\u2028llo' })
+    logger.log({ str: 'he\u2029llo' })
+
+    logger.log('/a/b.txt')
+    logger.log(new String('/a/b.txt')) // eslint-disable-line
+    logger.log({ str: '/a/b.txt' })
+    logger.log({ str: new String('/a/b.txt') }) // eslint-disable-line
   }
 
   await closeAndCompare()
