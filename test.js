@@ -5,6 +5,7 @@ const Console = require('.')
 test('log', (t) => {
   t.plan(1)
 
+  const stdout = new Writable({
     write (data, cb) {
       t.is(data, 'hello\n')
       cb(null)
