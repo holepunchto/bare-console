@@ -8,8 +8,9 @@ npm i bare-console
 
 ## Usage
 
-```javascript
+```js
 const Console = require('bare-console')
+
 const console = new Console({ stdout: process.stdout, stderr: process.stderr })
 
 console.log('Hello')
