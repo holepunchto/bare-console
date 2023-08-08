@@ -7,6 +7,14 @@ module.exports = class Console {
 
     this._colors = opts.colors === true
     this._timers = new Map()
+
+    if (opts.bind) {
+      this.log = this.log.bind(this)
+      this.error = this.error.bind(this)
+      this.time = this.time.bind(this)
+      this.timeEnd = this.timeEnd.bind(this)
+      this.trace = this.trace.bind(this)
+    }
   }
 
   log (...args) {

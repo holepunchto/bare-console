@@ -43,3 +43,26 @@ test('error', (t) => {
 
   console.error('hello')
 })
+
+test('console is bound to its context', (t) => {
+  t.plan(2)
+
+  const stdout = new Writable({
+    write (data, cb) {
+      t.pass()
+      cb(null)
+    }
+  })
+
+  const stderr = new Writable({
+    write (data, cb) {
+      t.pass()
+      cb(null)
+    }
+  })
+
+  const console = new Console({ stdout, stderr, bind: true })
+
+  process.nextTick(console.log, 42)
+  process.nextTick(console.error, new Error('hello'))
+})
