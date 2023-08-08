@@ -8,7 +8,13 @@ module.exports = class Console {
     this._colors = opts.colors === true
     this._timers = new Map()
 
-    bind(this, ['log', 'error', 'time', 'timeEnd', 'trace'])
+    if (opts.bind) {
+      this.log = this.log.bind(this)
+      this.error = this.error.bind(this)
+      this.time = this.time.bind(this)
+      this.timeEnd = this.timeEnd.bind(this)
+      this.trace = this.trace.bind(this)
+    }
   }
 
   log (...args) {
@@ -77,10 +83,4 @@ module.exports = class Console {
 
 function adaptStream (stream) {
   return typeof stream === 'function' ? { write: stream } : stream
-}
-
-function bind (self, methods) {
-  for (const method of methods) {
-    self[method] = self[method].bind(self)
-  }
 }
