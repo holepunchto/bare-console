@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/holepunchto/bare-console#readme",
   "dependencies": {
-    "bare-inspect": "^1.0.0"
+    "bare-inspect": "^1.1.0"
   },
   "devDependencies": {
     "brittle": "^3.1.1",
