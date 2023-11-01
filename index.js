@@ -18,31 +18,11 @@ module.exports = class Console {
   }
 
   log (...args) {
-    let out = ''
-    let first = true
-
-    for (const arg of args) {
-      if (first) first = false
-      else out += ' '
-
-      out += typeof arg === 'string' ? arg : inspect(arg, { colors: this._colors })
-    }
-
-    this._stdout.write(out + '\n')
+    this._stdout.write(formatArgs(args) + '\n')
   }
 
   error (...args) {
-    let out = ''
-    let first = true
-
-    for (const arg of args) {
-      if (first) first = false
-      else out += ' '
-
-      out += typeof arg === 'string' ? arg : inspect(arg, { colors: this._colors })
-    }
-
-    this._stderr.write(out + '\n')
+    this._stderr.write(formatArgs(args) + '\n')
   }
 
   time (label = 'default') {
@@ -70,17 +50,27 @@ module.exports = class Console {
     else this.log(label + ': ' + ms.toFixed(3) + 'ms')
   }
 
-  trace (...messages) {
-    const { stack } = new Error()
-
-    const first = stack.indexOf('\n')
-    const second = stack.indexOf('\n', first + 1)
-    const start = second > -1 ? second : 0
-
-    this.error('Trace: ' + messages.join(' ') + stack.slice(start))
+  trace (...args) {
+    const err = { name: 'Trace', message: formatArgs(args) }
+    Error.captureStackTrace(err, this.trace)
+    this.error(err.stack)
   }
 }
 
 function adaptStream (stream) {
   return typeof stream === 'function' ? { write: stream } : stream
+}
+
+function formatArgs (args) {
+  let out = ''
+  let first = true
+
+  for (const arg of args) {
+    if (first) first = false
+    else out += ' '
+
+    out += typeof arg === 'string' ? arg : inspect(arg, { colors: this._colors })
+  }
+
+  return out
 }
