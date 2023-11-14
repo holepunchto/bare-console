@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/holepunchto/bare-console#readme",
   "dependencies": {
+    "bare-hrtime": "^2.0.0",
     "bare-inspect": "^1.1.0"
   },
   "devDependencies": {

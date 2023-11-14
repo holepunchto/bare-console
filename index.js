@@ -1,4 +1,5 @@
 const inspect = require('bare-inspect')
+const hrtime = require('bare-hrtime')
 
 module.exports = class Console {
   constructor (opts = {}) {
@@ -31,7 +32,7 @@ module.exports = class Console {
       return
     }
 
-    this._timers.set(label, process.hrtime())
+    this._timers.set(label, hrtime())
   }
 
   timeEnd (label = 'default') {
@@ -42,7 +43,7 @@ module.exports = class Console {
       return
     }
 
-    const d = process.hrtime(started)
+    const d = hrtime(started)
     const ms = d[0] * 1e3 + d[1] / 1e6
     this._timers.delete(label)
 
