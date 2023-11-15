@@ -19,11 +19,11 @@ module.exports = class Console {
   }
 
   log (...args) {
-    this._stdout.write(formatArgs(args) + '\n')
+    this._stdout.write(formatArgs(args, { colors: this._colors }) + '\n')
   }
 
   error (...args) {
-    this._stderr.write(formatArgs(args) + '\n')
+    this._stderr.write(formatArgs(args, { colors: this._colors }) + '\n')
   }
 
   time (label = 'default') {
@@ -52,7 +52,7 @@ module.exports = class Console {
   }
 
   trace (...args) {
-    const err = { name: 'Trace', message: formatArgs(args) }
+    const err = { name: 'Trace', message: formatArgs(args, { colors: this._colors }) }
     Error.captureStackTrace(err, this.trace)
     this.error(err.stack)
   }
@@ -62,7 +62,7 @@ function adaptStream (stream) {
   return typeof stream === 'function' ? { write: stream } : stream
 }
 
-function formatArgs (args) {
+function formatArgs (args, opts) {
   let out = ''
   let first = true
 
@@ -70,7 +70,7 @@ function formatArgs (args) {
     if (first) first = false
     else out += ' '
 
-    out += typeof arg === 'string' ? arg : inspect(arg, { colors: this._colors })
+    out += typeof arg === 'string' ? arg : inspect(arg, opts)
   }
 
   return out
