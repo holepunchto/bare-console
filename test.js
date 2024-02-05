@@ -63,6 +63,6 @@ test('console is bound to its context', (t) => {
 
   const console = new Console({ stdout, stderr, bind: true })
 
-  process.nextTick(console.log, 42)
-  process.nextTick(console.error, new Error('hello'))
+  queueMicrotask(console.log, 42)
+  queueMicrotask(console.error, new Error('hello'))
 })

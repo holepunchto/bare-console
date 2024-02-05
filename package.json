@@ -7,7 +7,7 @@
     "index.js"
   ],
   "scripts": {
-    "test": "standard && brittle test.js"
+    "test": "standard && bare test.js"
   },
   "repository": {
     "type": "git",
@@ -20,8 +20,9 @@
   },
   "homepage": "https://github.com/holepunchto/bare-console#readme",
   "dependencies": {
+    "bare-events": "^2.2.0",
     "bare-hrtime": "^2.0.0",
-    "bare-inspect": "^1.1.0"
+    "bare-inspect": "^2.0.0"
   },
   "devDependencies": {
     "brittle": "^3.1.1",
