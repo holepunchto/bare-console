@@ -1,5 +1,5 @@
 const test = require('brittle')
-const { Writable } = require('streamx')
+const { Writable } = require('bare-stream')
 const Console = require('.')
 
 test('log', (t) => {
