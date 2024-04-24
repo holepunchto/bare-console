@@ -22,7 +22,7 @@
   "dependencies": {
     "bare-events": "^2.2.0",
     "bare-hrtime": "^2.0.0",
-    "bare-inspect": "^2.0.0"
+    "bare-inspect": "^3.0.0"
   },
   "devDependencies": {
     "bare-stream": "^1.0.0",
