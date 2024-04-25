@@ -23,6 +23,48 @@ test('log', (t) => {
   console.log('hello')
 })
 
+test('log with format', (t) => {
+  t.plan(1)
+
+  const stdout = new Writable({
+    write (data, cb) {
+      t.is(data, 'hello world\n')
+      cb(null)
+    }
+  })
+
+  const stderr = new Writable({
+    write () {
+      t.fail()
+    }
+  })
+
+  const console = new Console({ stdout, stderr })
+
+  console.log('hello %s', 'world')
+})
+
+test('warn', (t) => {
+  t.plan(1)
+
+  const stdout = new Writable({
+    write () {
+      t.fail()
+    }
+  })
+
+  const stderr = new Writable({
+    write (data, cb) {
+      t.is(data, 'hello\n')
+      cb(null)
+    }
+  })
+
+  const console = new Console({ stdout, stderr })
+
+  console.warn('hello')
+})
+
 test('error', (t) => {
   t.plan(1)
 

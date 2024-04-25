@@ -1,4 +1,4 @@
-const inspect = require('bare-inspect')
+const { formatWithOptions } = require('bare-format')
 const hrtime = require('bare-hrtime')
 
 module.exports = class Console {
@@ -11,6 +11,7 @@ module.exports = class Console {
 
     if (opts.bind) {
       this.log = this.log.bind(this)
+      this.warn = this.warn.bind(this)
       this.error = this.error.bind(this)
       this.time = this.time.bind(this)
       this.timeEnd = this.timeEnd.bind(this)
@@ -19,11 +20,15 @@ module.exports = class Console {
   }
 
   log (...args) {
-    this._stdout.write(formatArgs(args, { colors: this._colors }) + '\n')
+    this._stdout.write(formatWithOptions({ colors: this._colors }, ...args) + '\n')
+  }
+
+  warn (...args) {
+    this._stderr.write(formatWithOptions({ colors: this._colors }, ...args) + '\n')
   }
 
   error (...args) {
-    this._stderr.write(formatArgs(args, { colors: this._colors }) + '\n')
+    this._stderr.write(formatWithOptions({ colors: this._colors }, ...args) + '\n')
   }
 
   time (label = 'default') {
@@ -52,26 +57,16 @@ module.exports = class Console {
   }
 
   trace (...args) {
-    const err = { name: 'Trace', message: formatArgs(args, { colors: this._colors }) }
-    Error.captureStackTrace(err, this.trace)
+    const err = { name: 'Trace', message: formatWithOptions({ colors: this._colors }, ...args) }
+
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(err, this.trace)
+    }
+
     this.error(err.stack)
   }
 }
 
 function adaptStream (stream) {
   return typeof stream === 'function' ? { write: stream } : stream
-}
-
-function formatArgs (args, opts) {
-  let out = ''
-  let first = true
-
-  for (const arg of args) {
-    if (first) first = false
-    else out += ' '
-
-    out += typeof arg === 'string' ? arg : inspect(arg, opts)
-  }
-
-  return out
 }
