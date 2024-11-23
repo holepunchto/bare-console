@@ -2,7 +2,7 @@ const { formatWithOptions } = require('bare-format')
 const hrtime = require('bare-hrtime')
 
 module.exports = class Console {
-  constructor (opts = {}) {
+  constructor(opts = {}) {
     this._stdout = adaptStream(opts.stdout)
     this._stderr = adaptStream(opts.stderr)
 
@@ -19,32 +19,40 @@ module.exports = class Console {
     }
   }
 
-  log (...args) {
-    this._stdout.write(formatWithOptions({ colors: this._colors }, ...args) + '\n')
+  log(...args) {
+    this._stdout.write(
+      formatWithOptions({ colors: this._colors }, ...args) + '\n'
+    )
   }
 
-  warn (...args) {
-    this._stderr.write(formatWithOptions({ colors: this._colors }, ...args) + '\n')
+  warn(...args) {
+    this._stderr.write(
+      formatWithOptions({ colors: this._colors }, ...args) + '\n'
+    )
   }
 
-  error (...args) {
-    this._stderr.write(formatWithOptions({ colors: this._colors }, ...args) + '\n')
+  error(...args) {
+    this._stderr.write(
+      formatWithOptions({ colors: this._colors }, ...args) + '\n'
+    )
   }
 
-  time (label = 'default') {
+  time(label = 'default') {
     if (this._timers.has(label)) {
-      this.error('Warning: Label \'' + label + '\' already exists for console.time()')
+      this.error(
+        "Warning: Label '" + label + "' already exists for console.time()"
+      )
       return
     }
 
     this._timers.set(label, hrtime())
   }
 
-  timeEnd (label = 'default') {
+  timeEnd(label = 'default') {
     const started = this._timers.get(label)
 
     if (!started) {
-      this.error('Warning: No such label \'' + label + '\' for console.timeEnd()')
+      this.error("Warning: No such label '" + label + "' for console.timeEnd()")
       return
     }
 
@@ -56,8 +64,11 @@ module.exports = class Console {
     else this.log(label + ': ' + ms.toFixed(3) + 'ms')
   }
 
-  trace (...args) {
-    const err = { name: 'Trace', message: formatWithOptions({ colors: this._colors }, ...args) }
+  trace(...args) {
+    const err = {
+      name: 'Trace',
+      message: formatWithOptions({ colors: this._colors }, ...args)
+    }
 
     if (Error.captureStackTrace) {
       Error.captureStackTrace(err, this.trace)
@@ -67,6 +78,6 @@ module.exports = class Console {
   }
 }
 
-function adaptStream (stream) {
+function adaptStream(stream) {
   return typeof stream === 'function' ? { write: stream } : stream
 }

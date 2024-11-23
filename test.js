@@ -6,14 +6,14 @@ test('log', (t) => {
   t.plan(1)
 
   const stdout = new Writable({
-    write (data, encoding, cb) {
+    write(data, encoding, cb) {
       t.alike(data, Buffer.from('hello\n'))
       cb(null)
     }
   })
 
   const stderr = new Writable({
-    write () {
+    write() {
       t.fail()
     }
   })
@@ -27,14 +27,14 @@ test('log with format', (t) => {
   t.plan(1)
 
   const stdout = new Writable({
-    write (data, encoding, cb) {
+    write(data, encoding, cb) {
       t.alike(data, Buffer.from('hello world\n'))
       cb(null)
     }
   })
 
   const stderr = new Writable({
-    write () {
+    write() {
       t.fail()
     }
   })
@@ -48,13 +48,13 @@ test('warn', (t) => {
   t.plan(1)
 
   const stdout = new Writable({
-    write () {
+    write() {
       t.fail()
     }
   })
 
   const stderr = new Writable({
-    write (data, encoding, cb) {
+    write(data, encoding, cb) {
       t.alike(data, Buffer.from('hello\n'))
       cb(null)
     }
@@ -69,13 +69,13 @@ test('error', (t) => {
   t.plan(1)
 
   const stdout = new Writable({
-    write () {
+    write() {
       t.fail()
     }
   })
 
   const stderr = new Writable({
-    write (data, encoding, cb) {
+    write(data, encoding, cb) {
       t.alike(data, Buffer.from('hello\n'))
       cb(null)
     }
@@ -90,14 +90,14 @@ test('console is bound to its context', (t) => {
   t.plan(2)
 
   const stdout = new Writable({
-    write (data, encoding, cb) {
+    write(data, encoding, cb) {
       t.pass()
       cb(null)
     }
   })
 
   const stderr = new Writable({
-    write (data, encoding, cb) {
+    write(data, encoding, cb) {
       t.pass()
       cb(null)
     }
