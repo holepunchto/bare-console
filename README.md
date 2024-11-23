@@ -1,6 +1,6 @@
 # bare-console
 
-Simple debugging console for JavaScript.
+WHATWG debugging console for JavaScript.
 
 ```
 npm i bare-console
@@ -11,7 +11,7 @@ npm i bare-console
 ```js
 const Console = require('bare-console')
 
-const console = new Console({ stdout: process.stdout, stderr: process.stderr })
+const console = new Console({ stdout, stderr })
 
 console.log('Hello')
 console.error(new Error('Something happened'))

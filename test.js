@@ -1,22 +1,20 @@
 const test = require('brittle')
-const { Writable } = require('bare-stream')
 const Console = require('.')
 
 test('log', (t) => {
   t.plan(1)
 
-  const stdout = new Writable({
-    write(data, encoding, cb) {
-      t.alike(data, Buffer.from('hello\n'))
-      cb(null)
+  const stdout = {
+    write(data) {
+      t.alike(data, 'hello\n')
     }
-  })
+  }
 
-  const stderr = new Writable({
+  const stderr = {
     write() {
       t.fail()
     }
-  })
+  }
 
   const console = new Console({ stdout, stderr })
 
@@ -26,18 +24,17 @@ test('log', (t) => {
 test('log with format', (t) => {
   t.plan(1)
 
-  const stdout = new Writable({
-    write(data, encoding, cb) {
-      t.alike(data, Buffer.from('hello world\n'))
-      cb(null)
+  const stdout = {
+    write(data) {
+      t.alike(data, 'hello world\n')
     }
-  })
+  }
 
-  const stderr = new Writable({
+  const stderr = {
     write() {
       t.fail()
     }
-  })
+  }
 
   const console = new Console({ stdout, stderr })
 
@@ -47,18 +44,17 @@ test('log with format', (t) => {
 test('warn', (t) => {
   t.plan(1)
 
-  const stdout = new Writable({
+  const stdout = {
     write() {
       t.fail()
     }
-  })
+  }
 
-  const stderr = new Writable({
-    write(data, encoding, cb) {
-      t.alike(data, Buffer.from('hello\n'))
-      cb(null)
+  const stderr = {
+    write(data) {
+      t.alike(data, 'hello\n')
     }
-  })
+  }
 
   const console = new Console({ stdout, stderr })
 
@@ -68,43 +64,61 @@ test('warn', (t) => {
 test('error', (t) => {
   t.plan(1)
 
-  const stdout = new Writable({
+  const stdout = {
     write() {
       t.fail()
     }
-  })
+  }
 
-  const stderr = new Writable({
-    write(data, encoding, cb) {
-      t.alike(data, Buffer.from('hello\n'))
-      cb(null)
+  const stderr = {
+    write(data) {
+      t.alike(data, 'hello\n')
     }
-  })
+  }
 
   const console = new Console({ stdout, stderr })
 
   console.error('hello')
 })
 
-test('console is bound to its context', (t) => {
+test('assert', (t) => {
+  t.plan(1)
+
+  const stdout = {
+    write() {
+      t.fail()
+    }
+  }
+
+  const stderr = {
+    write(data) {
+      t.alike(data, 'Assertion failed: falsy\n')
+    }
+  }
+
+  const console = new Console({ stdout, stderr })
+
+  console.assert(1, 'truthy')
+  console.assert(0, 'falsy')
+})
+
+test('bound console methods', (t) => {
   t.plan(2)
 
-  const stdout = new Writable({
-    write(data, encoding, cb) {
+  const stdout = {
+    write() {
       t.pass()
-      cb(null)
     }
-  })
+  }
 
-  const stderr = new Writable({
-    write(data, encoding, cb) {
+  const stderr = {
+    write() {
       t.pass()
-      cb(null)
     }
-  })
+  }
 
-  const console = new Console({ stdout, stderr, bind: true })
+  const { log, error } = new Console({ stdout, stderr })
 
-  queueMicrotask(console.log, 42)
-  queueMicrotask(console.error, new Error('hello'))
+  log('hello')
+  error('world')
 })
