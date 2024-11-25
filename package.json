@@ -4,10 +4,12 @@
   "description": "WHATWG debugging console for JavaScript",
   "exports": {
     ".": "./index.js",
-    "./package": "./package.json"
+    "./package": "./package.json",
+    "./global": "./global.js"
   },
   "files": [
-    "index.js"
+    "index.js",
+    "global.js"
   ],
   "scripts": {
     "test": "prettier . --check && bare test.js"
@@ -23,8 +25,8 @@
   },
   "homepage": "https://github.com/holepunchto/bare-console#readme",
   "dependencies": {
-    "bare-format": "^1.0.0",
-    "bare-hrtime": "^2.0.0"
+    "bare-hrtime": "^2.0.0",
+    "bare-logger": "^1.0.0"
   },
   "devDependencies": {
     "brittle": "^3.1.1",

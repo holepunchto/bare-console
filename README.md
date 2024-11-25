@@ -11,7 +11,7 @@ npm i bare-console
 ```js
 const Console = require('bare-console')
 
-const console = new Console({ stdout, stderr })
+const console = new Console()
 
 console.log('Hello')
 console.error(new Error('Something happened'))

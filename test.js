@@ -4,59 +4,27 @@ const Console = require('.')
 test('log', (t) => {
   t.plan(1)
 
-  const stdout = {
-    write(data) {
-      t.alike(data, 'hello\n')
+  const log = {
+    info(data) {
+      t.is(data, 'hello')
     }
   }
 
-  const stderr = {
-    write() {
-      t.fail()
-    }
-  }
-
-  const console = new Console({ stdout, stderr })
+  const console = new Console(log)
 
   console.log('hello')
-})
-
-test('log with format', (t) => {
-  t.plan(1)
-
-  const stdout = {
-    write(data) {
-      t.alike(data, 'hello world\n')
-    }
-  }
-
-  const stderr = {
-    write() {
-      t.fail()
-    }
-  }
-
-  const console = new Console({ stdout, stderr })
-
-  console.log('hello %s', 'world')
 })
 
 test('warn', (t) => {
   t.plan(1)
 
-  const stdout = {
-    write() {
-      t.fail()
+  const log = {
+    warn(data) {
+      t.is(data, 'hello')
     }
   }
 
-  const stderr = {
-    write(data) {
-      t.alike(data, 'hello\n')
-    }
-  }
-
-  const console = new Console({ stdout, stderr })
+  const console = new Console(log)
 
   console.warn('hello')
 })
@@ -64,39 +32,80 @@ test('warn', (t) => {
 test('error', (t) => {
   t.plan(1)
 
-  const stdout = {
-    write() {
-      t.fail()
+  const log = {
+    error(data) {
+      t.is(data, 'hello')
     }
   }
 
-  const stderr = {
-    write(data) {
-      t.alike(data, 'hello\n')
-    }
-  }
-
-  const console = new Console({ stdout, stderr })
+  const console = new Console(log)
 
   console.error('hello')
+})
+
+test('trace', (t) => {
+  t.plan(2)
+
+  const log = {
+    format(data) {
+      t.is(data, 'hello')
+      return data
+    },
+    error(data) {
+      t.comment(data)
+      t.pass()
+    }
+  }
+
+  const console = new Console(log)
+
+  console.trace('hello')
+})
+
+test('time', (t) => {
+  t.plan(2)
+
+  const log = {
+    info(data) {
+      t.comment(data)
+      t.pass()
+    }
+  }
+
+  const console = new Console(log)
+
+  console.time('label')
+  console.timeLog('label', 'hello')
+  console.timeEnd('label')
+})
+
+test('count', (t) => {
+  t.plan(2)
+
+  const log = {
+    info(data) {
+      t.comment(data)
+      t.pass()
+    }
+  }
+
+  const console = new Console(log)
+
+  console.count('label')
+  console.count('label')
+  console.countReset('label')
 })
 
 test('assert', (t) => {
   t.plan(1)
 
-  const stdout = {
-    write() {
-      t.fail()
+  const log = {
+    error(data) {
+      t.is(data, 'Assertion failed: falsy')
     }
   }
 
-  const stderr = {
-    write(data) {
-      t.alike(data, 'Assertion failed: falsy\n')
-    }
-  }
-
-  const console = new Console({ stdout, stderr })
+  const console = new Console(log)
 
   console.assert(1, 'truthy')
   console.assert(0, 'falsy')
@@ -105,20 +114,17 @@ test('assert', (t) => {
 test('bound console methods', (t) => {
   t.plan(2)
 
-  const stdout = {
-    write() {
-      t.pass()
+  const log = {
+    info(data) {
+      t.is(data, 'info')
+    },
+    error(data) {
+      t.is(data, 'error')
     }
   }
 
-  const stderr = {
-    write() {
-      t.pass()
-    }
-  }
+  const console = new Console(log)
 
-  const { log, error } = new Console({ stdout, stderr })
-
-  log('hello')
-  error('world')
+  console.log.call(null, 'info')
+  console.error.call(null, 'error')
 })
