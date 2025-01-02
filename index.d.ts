@@ -5,22 +5,22 @@ declare class Console {
 
   get Console(): typeof Console
 
-  debug(...data: any[]): void
-  log(...data: any[]): void
-  info(...data: any[]): void
-  warn(...data: any[]): void
-  error(...data: any[]): void
+  debug(...data: unknown[]): void
+  log(...data: unknown[]): void
+  info(...data: unknown[]): void
+  warn(...data: unknown[]): void
+  error(...data: unknown[]): void
 
   clear(): void
 
   time(label?: string): void
   timeEnd(label?: string): void
-  timeLog(label?: string, ...data: any[]): void
+  timeLog(label?: string, ...data: unknown[]): void
 
-  assert(condition: any, ...data: any[]): void
+  assert(condition: unknown, ...data: unknown[]): void
   count(label?: string): void
   countReset(label?: string): void
-  trace(...data: any[]): void
+  trace(...data: unknown[]): void
 }
 
 declare namespace Console {
