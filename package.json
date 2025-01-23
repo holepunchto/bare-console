@@ -3,17 +3,21 @@
   "version": "6.0.0",
   "description": "WHATWG debugging console for JavaScript",
   "exports": {
+    "./package": "./package.json",
     ".": {
       "types": "./index.d.ts",
       "default": "./index.js"
     },
-    "./package": "./package.json",
-    "./global": "./global.js"
+    "./global": {
+      "types": "./global.d.ts",
+      "default": "./global.js"
+    }
   },
   "files": [
     "index.js",
     "index.d.ts",
-    "global.js"
+    "global.js",
+    "global.d.ts"
   ],
   "scripts": {
     "test": "prettier . --check && bare test.js"

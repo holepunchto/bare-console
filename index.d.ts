@@ -1,9 +1,7 @@
 import Log from 'bare-logger'
 
-declare class Console {
-  constructor(log?: Log)
-
-  get Console(): typeof Console
+interface Console {
+  readonly Console: ConsoleConstructor
 
   debug(...data: unknown[]): void
   log(...data: unknown[]): void
@@ -22,6 +20,12 @@ declare class Console {
   countReset(label?: string): void
   trace(...data: unknown[]): void
 }
+
+declare class Console {
+  constructor(log?: Log)
+}
+
+type ConsoleConstructor = typeof Console
 
 declare namespace Console {
   export { Console }
