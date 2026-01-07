@@ -1,8 +1,9 @@
 const Log = require('bare-logger')
+const SystemLog = require('bare-system-logger')
 const hrtime = require('bare-hrtime')
 
 module.exports = exports = class Console {
-  constructor(log = new Log()) {
+  constructor(log = defaultLog()) {
     const timers = new Map()
     const counters = new Map()
 
@@ -115,3 +116,7 @@ module.exports = exports = class Console {
 }
 
 exports.Console = exports // For Node.js compatibility
+
+function defaultLog() {
+  return Bare.platform === 'android' ? new SystemLog() : new Log()
+}
