@@ -107,6 +107,61 @@ module.exports = exports = class Console {
 
       this.error(...data)
     }
+
+    // https://console.spec.whatwg.org/#table
+    this.table = function table(tabularData, properties) {
+      if (properties !== undefined && !Array.isArray(properties)) {
+        throw new TypeError("The 'properties' argument must be an array")
+      }
+
+      if (tabularData === null || typeof tabularData !== 'object') {
+        return this.log(tabularData)
+      }
+
+      const indices = Object.keys(tabularData)
+
+      if (indices.length === 0) return this.log(tabularData)
+
+      const columns = properties !== undefined ? properties : []
+      let hasValues = false
+
+      for (const index of indices) {
+        const value = tabularData[index]
+
+        if (value === null || typeof value !== 'object') {
+          hasValues = true
+          continue
+        }
+
+        if (properties === undefined) {
+          for (const key of Object.keys(value)) {
+            if (!columns.includes(key)) columns.push(key)
+          }
+        }
+      }
+
+      const header = ['(index)', ...columns]
+      if (hasValues) header.push('Values')
+
+      const rows = indices.map((index) => {
+        const value = tabularData[index]
+        const row = new Array(header.length).fill('')
+
+        row[0] = index
+
+        if (value !== null && typeof value === 'object') {
+          for (let i = 0; i < columns.length; i++) {
+            if (columns[i] in value) row[i + 1] = log.format(value[columns[i]])
+          }
+        } else if (hasValues) {
+          row[header.length - 1] = log.format(value)
+        }
+
+        return row
+      })
+
+      this.log(render(header, rows))
+    }
   }
 
   // For Node.js compatibility
@@ -119,4 +174,31 @@ exports.Console = exports // For Node.js compatibility
 
 function defaultLog() {
   return Bare.platform === 'android' ? new SystemLog() : new Log()
+}
+
+const ansi = /\x1b\[[0-9;]*m/g
+
+function visibleLength(str) {
+  return str.replace(ansi, '').length
+}
+
+function render(header, rows) {
+  const widths = header.map((h, i) => {
+    let max = visibleLength(h)
+    for (const r of rows) max = Math.max(max, visibleLength(r[i]))
+    return max
+  })
+
+  const border = (l, m, r) => l + widths.map((w) => '─'.repeat(w + 2)).join(m) + r
+
+  const row = (cells) =>
+    '│' + cells.map((c, i) => ` ${c}${' '.repeat(widths[i] - visibleLength(c))} `).join('│') + '│'
+
+  return [
+    border('┌', '┬', '┐'),
+    row(header),
+    border('├', '┼', '┤'),
+    ...rows.map(row),
+    border('└', '┴', '┘')
+  ].join('\n')
 }

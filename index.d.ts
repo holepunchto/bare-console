@@ -19,6 +19,7 @@ interface Console {
   count(label?: string): void
   countReset(label?: string): void
   trace(...data: unknown[]): void
+  table(tabularData: unknown, properties?: readonly string[]): void
 }
 
 declare class Console {
