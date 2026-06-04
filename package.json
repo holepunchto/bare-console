@@ -17,7 +17,8 @@
     "index.js",
     "index.d.ts",
     "global.js",
-    "global.d.ts"
+    "global.d.ts",
+    "lib"
   ],
   "scripts": {
     "test": "prettier . --check && bare test.js"
@@ -33,6 +34,7 @@
   },
   "homepage": "https://github.com/holepunchto/bare-console#readme",
   "dependencies": {
+    "bare-format": "^1.0.2",
     "bare-hrtime": "^2.0.0",
     "bare-logger": "^2.0.0",
     "bare-system-logger": "^1.0.2"
