@@ -115,7 +115,7 @@ test('table with array of objects', (t) => {
   t.plan(1)
 
   const log = {
-    format(value) {
+    format(spec, value) {
       return String(value)
     },
     info(data) {
@@ -143,7 +143,7 @@ test('table with properties filter', (t) => {
   t.plan(1)
 
   const log = {
-    format(value) {
+    format(spec, value) {
       return String(value)
     },
     info(data) {
@@ -174,7 +174,7 @@ test('table with object', (t) => {
   t.plan(1)
 
   const log = {
-    format(value) {
+    format(spec, value) {
       return String(value)
     },
     info(data) {
@@ -199,7 +199,7 @@ test('table strips ANSI codes when measuring width', (t) => {
   t.plan(1)
 
   const log = {
-    format(value) {
+    format(spec, value) {
       return '\x1b[33m' + String(value) + '\x1b[39m'
     },
     info(data) {
@@ -232,6 +232,31 @@ test('table with primitives falls back to log', (t) => {
   const console = new Console(log)
 
   console.table('hello')
+})
+
+test('table escapes newlines in formatted cells', (t) => {
+  t.plan(1)
+
+  const log = {
+    format(spec, value) {
+      if (typeof value === 'string') return "'" + value + "'"
+      return String(value)
+    },
+    info(data) {
+      t.is(
+        data,
+        '┌─────────┬────────────────┐\n' +
+          '│ (index) │ x              │\n' +
+          '├─────────┼────────────────┤\n' +
+          "│ 0       │ 'line1\\nline2' │\n" +
+          '└─────────┴────────────────┘'
+      )
+    }
+  }
+
+  const console = new Console(log)
+
+  console.table([{ x: 'line1\nline2' }])
 })
 
 test('table with non-array properties throws', async (t) => {
