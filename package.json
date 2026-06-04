@@ -1,6 +1,6 @@
 {
   "name": "bare-console",
-  "version": "6.1.0",
+  "version": "6.2.0",
   "description": "WHATWG debugging console for JavaScript",
   "exports": {
     "./package": "./package.json",
