@@ -33,7 +33,7 @@ console.log('Hello')
 
 ## API
 
-See the [full API reference](https://docs.pears.com/reference/bare/modules/bare-console).
+See the [`bare-console` reference](https://docs.pears.com/reference/bare/modules/bare-console).
 
 ## License
 
