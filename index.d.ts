@@ -1,11 +1,7 @@
 import Log from 'bare-logger'
 
 interface Console {
-  /**
-   * Construct a new `Console`. By default, output is written through `bare-logger`
-   * (<https://github.com/holepunchto/bare-logger>), or `bare-system-logger`
-   * (<https://github.com/holepunchto/bare-system-logger>) on Android.
-   */
+  /** The `Console` constructor, exposed for Node.js compatibility. */
   readonly Console: ConsoleConstructor
 
   /**
@@ -72,6 +68,7 @@ interface Console {
 
 declare class Console {
   /**
+   * Construct a new `Console`.
    * @param log - The logging backend to write through. Defaults to a `bare-logger` instance, or
    * `bare-system-logger` on Android.
    */
